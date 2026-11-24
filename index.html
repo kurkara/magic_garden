@@ -84,6 +84,9 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .bars s span{display:block;height:100%;background:var(--acc2)}
 .bars b{text-align:right;font-variant-numeric:tabular-nums}
 .cardacts{display:flex;gap:8px;margin-top:12px}
+button.mini{min-height:32px;padding:0 10px;font-size:12px;font-weight:600;color:var(--mute);background:none;border:0;margin-top:6px;text-decoration:underline;text-underline-offset:3px}
+.pinrow{display:flex;gap:6px;align-items:center;margin-top:8px;flex-wrap:wrap}.pinrow input{width:110px;min-height:40px;border:1px solid var(--line);border-radius:10px;padding:0 10px;font-size:16px;background:var(--soft)}.pinrow button{min-height:40px}
+.pinerr{color:var(--acc);font-size:12px;font-weight:600}
 .cardacts button{flex:1}
 #note{position:fixed;left:50%;top:76px;transform:translateX(-50%);background:#1b1630;color:#fff;padding:8px 14px;border-radius:12px;font-size:13px;max-width:min(560px,calc(100% - 20px));text-align:center}
 #note:empty{display:none}
@@ -177,7 +180,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:30px}
   <div class="brand"><b id="pName">마법 광장</b><span id="pop">광장을 고르는 중</span><button id="bCode" class="code" title="코드 복사">코드</button></div>
   <div class="acts">
     <button id="bNew" class="pri">캐릭터 만들기</button>
-    <button id="bMe">내 캐릭터</button>
+    <button id="bMe" hidden>내 캐릭터</button>
     <button id="bGate">광장 이동</button>
     <button id="bPanel" aria-expanded="true">주민·기록</button>
     <button id="bPix" title="PS1 화질 켜고 끄기">화질</button>
@@ -381,7 +384,7 @@ addEventListener('resize',resize);
 
 const matC={};function M(col,opt){const k=col+(opt?JSON.stringify(opt):'');return matC[k]||(matC[k]=new THREE.MeshPhongMaterial(Object.assign({color:col,flatShading:true,shininess:6},opt||{})))}
 function mesh(geo,mat,x=0,y=0,z=0){const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);return m}
-const fountain={drops:[]};
+const fountain={drops:[]};const TABLES=[];const SEAT_Y=0.4;
 (function buildPlaza(){
  const r=rng(7);
  const g=new THREE.CircleGeometry(80,22);g.rotateX(-Math.PI/2);scene.add(mesh(g,M('#7bb26a'),0,-0.02,0));
@@ -397,6 +400,13 @@ const fountain={drops:[]};
  const orb=mesh(new THREE.IcosahedronGeometry(0.35,0),M('#e2407a',{emissive:'#5a1030'}),0,2.85,0);scene.add(orb);fountain.orb=orb;
  const dg=new THREE.IcosahedronGeometry(0.09,0),dm=M('#bfe8ff',{emissive:'#3a6a8a'});
  for(let i=0;i<14;i++){const d=mesh(dg,dm);d.userData={a:i/14*Math.PI*2,o:i/14};scene.add(d);fountain.drops.push(d)}
+ // marble tables + stools
+ const mb=M('#ecebe6',{shininess:70}),mv=M('#d8d6d0',{shininess:70});
+ for(const[tx,tz]of[[8.5,-3.5],[-4.5,8.5]]){const t=new THREE.Group();t.add(mesh(new THREE.CylinderGeometry(0.35,0.42,0.06,12),mv,0,0.03,0));t.add(mesh(new THREE.CylinderGeometry(0.1,0.16,0.72,10),mb,0,0.4,0));
+  t.add(mesh(new THREE.CylinderGeometry(0.68,0.66,0.08,16),mb,0,0.8,0));t.add(mesh(new THREE.CylinderGeometry(0.66,0.6,0.03,16),mv,0,0.745,0));t.position.set(tx,0,tz);scene.add(t);
+  const tb={x:tx,z:tz,seats:[]};for(let k=0;k<4;k++){const a=k/4*Math.PI*2+Math.PI/4;const sx=tx+Math.sin(a)*1.15,sz=tz+Math.cos(a)*1.15;const st=new THREE.Group();
+   st.add(mesh(new THREE.CylinderGeometry(0.2,0.24,0.34,10),mb,0,0.17,0));st.add(mesh(new THREE.CylinderGeometry(0.26,0.24,0.06,12),mv,0,0.37,0));st.position.set(sx,0,sz);scene.add(st);
+   tb.seats.push({x:sx,z:sz,a,occ:null,t:tb})}TABLES.push(tb)}
  // lamps & benches
  for(let i=0;i<8;i++){const a=i/8*Math.PI*2+Math.PI/8,x=Math.sin(a)*16.4,z=Math.cos(a)*16.4;
   scene.add(mesh(new THREE.CylinderGeometry(0.08,0.12,3,5),M('#3b3446'),x,1.5,z));
@@ -981,7 +991,7 @@ function buildChar(c){
  let extra={flowercrown:0.1,sunhat:0.55,ragcap:0.15,shawlhat:0.3,void:0.1,crown:0.35,mitre:0.55,beret:0.12,widehat:0.55,wizhat:1.1,crown:0.3,horns:0.3,feather:0.15,tiara:0.15,helm:0.12,visor:0.25}[head]||0;
  hg.traverse(o=>{if(o.isMesh&&shellSet.has(o.geometry)&&!o.userData.ds){const m=o.material.clone();m.side=THREE.DoubleSide;o.material=m;o.userData.ds=1;mats.push(m)}});
  if(RC)extra+=0.6;if(X&&X.spikecrown)extra+=0.7;if(X&&X.halo)extra+=0.35;if(X&&X.bighorn)extra+=0.25;
- return{g,body,legs,arms,capeG,pet,mats,wings:efx.wings||null,armBase:(X&&X.scholar)?[-0.6,0]:(X&&X.w==='bindle')?[0,-0.6]:(X&&X.mage)?[-0.8,0]:(EM&&EM.lavish)?[-0.45,0]:BG?[-0.6,0]:K?[-0.55,-0.85]:WL?[-0.5,-0.75]:BD?(BD.inst==='flute'?[-1.25,-1.25]:BD.inst==='harp'?[-0.55,-0.45]:[-0.65,-0.95]):[0,0],efx,top:headY+HH/2+0.05+extra,robe:low!=='pants'}}
+ return{g,body,legs,arms,capeG,pet,mats,hipY,wings:efx.wings||null,armBase:(X&&X.scholar)?[-0.6,0]:(X&&X.w==='bindle')?[0,-0.6]:(X&&X.mage)?[-0.8,0]:(EM&&EM.lavish)?[-0.45,0]:BG?[-0.6,0]:K?[-0.55,-0.85]:WL?[-0.5,-0.75]:BD?(BD.inst==='flute'?[-1.25,-1.25]:BD.inst==='harp'?[-0.55,-0.45]:[-0.65,-0.95]):[0,0],efx,top:headY+HH/2+0.05+extra,robe:low!=='pants'}}
 
 let headG=null;const headGeo=()=>{if(headG)return headG;const src=roundBox(0.9,0.82,0.8,0.36,4).toNonIndexed();const P=src.attributes.position.array,N=src.attributes.normal.array;const fp=[],fn=[],bp=[],bn=[];
  for(let i=0;i<P.length;i+=9){const cz=(P[i+2]+P[i+5]+P[i+8])/3;const tp=cz>0.04?fp:bp,tn=cz>0.04?fn:bn;for(let j=0;j<9;j++){tp.push(P[i+j]);tn.push(N[i+j])}}
@@ -1257,6 +1267,8 @@ function updEnt(e,dt,T){const r=e.r;if(!r)return;let tx,tz;
  if(d>0.02){const mx=(e.state==='free'?Math.max(2.4,d*1.2):2.2)*dt;const s=Math.min(d,mx);e.x+=dx/d*s;e.z+=dz/d*s;sp=s/dt;if(sp>0.15&&e.state!=='battle')e.face=Math.atan2(dx,dz)}
  pushOut(e);
  if((e.state==='battle'||e.state==='chat')&&e.foe&&e.foe.r)e.face=Math.atan2(e.foe.x-e.x,e.foe.z-e.z);
+ if(e.state==='watch'&&e.watchC&&sp<0.15)e.face=Math.atan2(e.watchC[0]-e.x,e.watchC[1]-e.z);
+ if(e.state==='sit'&&e.seat)e.face=Math.atan2(e.seat.t.x-e.x,e.seat.t.z-e.z);
  e.head=angLerp(e.head,e.face,Math.min(1,dt*8));
  e.phase+=sp*dt*5;const amp=Math.min(1,sp/1.1)*(r.robe?0.35:0.7);const sw=Math.sin(e.phase)*amp;
  r.legs[0].rotation.x=sw;r.legs[1].rotation.x=-sw;r.arms[0].rotation.x=-sw*0.8*(r.armBase[0]?0.3:1)+r.armBase[0];
@@ -1271,6 +1283,11 @@ function updEnt(e,dt,T){const r=e.r;if(!r)return;let tx,tz;
  if(e.jumpT>0){e.jumpT-=dt;const k=1-e.jumpT/1.4;y+=Math.abs(Math.sin(k*Math.PI*2))*0.6;ry=k*Math.PI*2}
  if(e.fallT>0){e.fallT-=dt;const k=e.fallT/2.4;rx=-(k>0.25?Math.min(1,(1-k)/0.2):k/0.25)*Math.PI/2}
  if(!e.idleT)e.idleT=0;if(sp<0.1&&e.state==='free'){r.body.position.y=Math.sin(T*2+e.seed)*0.012}
+ if(e.state==='watch'&&sp<0.15){y+=Math.max(0,Math.sin(T*7+e.seed))*0.07;r.arms[1].rotation.x=-1.6+Math.sin(T*7+e.seed)*0.6}
+ if(e.state==='sit'){r.legs[0].rotation.x=r.legs[1].rotation.x=-1.45;r.arms[0].rotation.x=-0.5;r.arms[1].rotation.x=-0.5;y+=SEAT_Y-(r.hipY||0.35)+0.02;
+  if(T>e.sitUntil){say(e,false);e.state='free';if(e.seat)e.seat.occ=null;e.seat=null;e.sitCool=T+40;e.cool=T+3}
+  else{if(T>e.nextSay){say(e,true);e.sayOff=T+2.6;e.nextSay=T+4.5+hrand(Math.floor(T),e.seed)*3}else if(e.sayOff&&T>e.sayOff){say(e,false);e.sayOff=0}}}
+ if(e.state==='sitwalk'&&Math.hypot(e.x-e.spot[0],e.z-e.spot[1])<0.08){e.state='sit';e.sitUntil=T+12+hrand(Math.floor(T),e.seed^7)*10;e.nextSay=T+1+hrand(Math.floor(T),e.seed^3)*2}
  r.g.position.set(e.x+Math.sin(e.head)*lunge,y,e.z+Math.cos(e.head)*lunge);r.g.rotation.set(rx,e.head+ry,0,'YXZ')}
 
 /* ---------- battles ---------- */
@@ -1307,7 +1324,10 @@ function startBattle(id,ea,eb,kind){
  const mx=(ea.x+eb.x)/2,mz=(ea.z+eb.z)/2;let dx=eb.x-ea.x,dz=eb.z-ea.z;const d=Math.hypot(dx,dz)||1;dx/=d;dz/=d;
  ea.spot=[mx-dx*0.85,mz-dz*0.85];eb.spot=[mx+dx*0.85,mz+dz*0.85];
  for(const[e,f]of[[ea,eb],[eb,ea]]){e.state='battle';e.foe=f;e.tag.classList.add('fight');e.hpEl.style.width='100%'}
- battles.push({id,ents:[ea,eb],res,i:0,t:0.9,done:false,kind})}
+ const W=[...ents.values()].filter(e=>e.state==='free'&&e.r&&e!==ea&&e!==eb&&Math.hypot(e.x-mx,e.z-mz)<7).sort((p,q)=>Math.hypot(p.x-mx,p.z-mz)-Math.hypot(q.x-mx,q.z-mz)).slice(0,10);
+ const base=Math.atan2(dx,dz)+Math.PI/2;W.forEach((e,i)=>{const a=base+Math.PI/2+(i+0.5)/W.length*Math.PI*2*(W.length>1?1:0)+(W.length===1?Math.PI/2:0);const rr=2.3+(i%2)*0.35;let sx=mx+Math.sin(a)*rr,sz=mz+Math.cos(a)*rr;const dd=Math.hypot(sx,sz);if(dd<4.4){sx*=4.4/dd;sz*=4.4/dd}
+  e.state='watch';e.spot=[sx,sz];e.watchC=[mx,mz]});
+ battles.push({id,ents:[ea,eb],res,i:0,t:0.9,done:false,kind,watchers:W})}
 function stepBattle(b,dt){b.t-=dt;if(b.t>0)return;const[A,B]=b.ents;
  if(!S.chars.has(A.id)||!S.chars.has(B.id)){endBattle(b);return}
  if(b.i<b.res.ev.length){const ev=b.res.ev[b.i++];const at=b.ents[ev.w],tg=b.ents[1-ev.w];const C=CLS[at.c.cls];const acc=C.o[at.c.outfit][1][2];
@@ -1322,10 +1342,15 @@ function stepBattle(b,dt){b.t-=dt;if(b.t>0)return;const[A,B]=b.ents;
   putBattle(b.id,{a:A.id,b:B.id,win:w.id,an:A.c.nick,bn:B.c.nick,at:Date.now(),turns:b.res.turns,kind:b.kind});
   if(S.local||!S.canWrite)renderPanel();b.t=2.6}
  else endBattle(b)}
-function endBattle(b){for(const e of b.ents){e.state='free';e.foe=null;e.cool=Date.now()/1000+12;e.tag.classList.remove('fight');for(const m of e.r?e.r.mats:[])m.emissive.setHex(0)}battles.splice(battles.indexOf(b),1)}
+function endBattle(b){for(const e of b.watchers||[])if(e.state==='watch'){e.state='free';e.watchC=null;e.cool=Date.now()/1000+4}
+ for(const e of b.ents){e.state='free';e.foe=null;e.cool=Date.now()/1000+12;e.tag.classList.remove('fight');for(const m of e.r?e.r.mats:[])m.emissive.setHex(0)}battles.splice(battles.indexOf(b),1)}
 function detect(T){const bucket=Math.floor(T/240),cb=Math.floor(T/90);const free=[...ents.values()].filter(e=>e.state==='free'&&e.r&&e.cool<T);
+ for(const tb of TABLES)for(const st of tb.seats)if(st.occ&&(!ents.has(st.occ)||!['sit','sitwalk'].includes(ents.get(st.occ).state)))st.occ=null;
+ for(const e of free){if((e.sitCool||0)>T)continue;let best=null,bd=3;for(const tb of TABLES)for(const st of tb.seats){if(st.occ)continue;const d=Math.hypot(e.x-st.x,e.z-st.z);if(d<bd){bd=d;best=st}}
+  if(best&&hrand(Math.floor(T*4),e.seed^0x5eed)<0.12){best.occ=e.id;e.seat=best;e.state='sitwalk';e.spot=[best.x,best.z]}else if(best)e.sitCool=T+6}
  for(let i=0;i<free.length;i++)for(let j=i+1;j<free.length;j++){const a=free[i],b=free[j];if(a.state!=='free'||b.state!=='free')continue;const d=Math.hypot(a.x-b.x,a.z-b.z);if(d>2.0)continue;
   const[p,q]=[a.id,b.id].sort();const bid='b-'+p+'-'+q+'-'+bucket,cid='c-'+p+'-'+q+'-'+cb;
+  if(a.state!=='free'||b.state!=='free')continue;
   if(!fought.has(bid)&&hrand(hash32(bid),7)<0.4){startBattle(bid,a,b,'plaza');continue}
   if(!chatted.has(cid))startChat(cid,a,b)}}
 let duel=null;
@@ -1402,7 +1427,12 @@ function openCard(id,quiet){const c=S.chars.get(id);if(!c)return;cardId=id;const
  const hd=el('div','hd');const tx=el('div');tx.append(el('h3',null,c.nick),el('div','sub',(c.real?c.real+' · ':'')+C.n+' · '+C.o[c.outfit][0]),el('div','sub',`${w}승 ${l}패`),el('div','sub','“'+lineOf(ents.get(id)||{id,c})+'”'));hd.append(faceEl(c),tx);k.append(hd);
  k.append(statBars(st));k.append(el('p','sub',`스킬 ${st.sk}: ${FX[st.fx]}`));
  const a=el('div','cardacts');const f=el('button',null,'따라가기');f.onclick=()=>{cam.follow=id;cam.dist=Math.min(cam.dist,14)};const x=el('button',null,'닫기');x.onclick=()=>{k.hidden=true;cam.follow=null};
- a.append(f);if(meId&&S.chars.has(meId)&&meId!==id){const d=el('button','pri','결투 신청');d.onclick=()=>startDuel(meId,id);a.append(d)}a.append(x);k.append(a)}
+ a.append(f);if(meId&&S.chars.has(meId)&&meId!==id){const d=el('button','pri','결투 신청');d.onclick=()=>startDuel(meId,id);a.append(d)}a.append(x);k.append(a);
+ const ed=el('button','mini',meId===id?'내 캐릭터 · 수정하기':'수정하기');k.append(ed);
+ ed.onclick=()=>{if(canTouch(c)||meId===id){meId=id;ls.set('plaza-me-'+S.code,id);refreshAll();openCreator(S.chars.get(id));return}
+  ed.remove();const row=el('div','pinrow');const ip=el('input');ip.type='password';ip.inputMode='numeric';ip.maxLength=4;ip.placeholder='PIN 4자리';const ok=el('button','sec','확인');const msg=el('span','pinerr');row.append(ip,ok,msg);k.append(row);ip.focus();
+  const go=()=>{const v=ip.value.trim();if(!(c.pin&&/^\d{4}$/.test(v)&&String(hash32(c.id+':'+v))===c.pin)){msg.textContent='PIN이 맞지 않아요';ip.select();return}
+   meId=id;ls.set('plaza-me-'+S.code,id);refreshAll();openCreator(S.chars.get(id))};ok.onclick=go;ip.onkeydown=e=>{if(e.key==='Enter')go()}}}
 function statBars(st){const g=el('div','bars');for(const[n,v,m]of[['체력',st.hp,170],['공격',st.atk,26],['방어',st.def,20],['속도',st.spd,20]]){const s=el('s');const sp=el('span');sp.style.width=clamp(v/m*100,4,100)+'%';s.append(sp);g.append(el('em',null,n),s,el('b',null,String(v)))}return g}
 $('#tRoster').onclick=()=>tab(0);$('#tLog').onclick=()=>tab(1);
 function tab(i){$('#tRoster').setAttribute('aria-selected',i===0);$('#tLog').setAttribute('aria-selected',i===1);$('#roster').hidden=i!==0;$('#logs').hidden=i!==1}
@@ -1436,7 +1466,8 @@ function renderForm(){
  $('#vH').textContent=Math.round(150+(draft.h-0.85)/0.35*40)+'cm 느낌';$('#vW').textContent=draft.w<0.9?'마른 편':draft.w<1.15?'보통':'튼튼한 편'}
 function sw(box,list,key,label,after){box.textContent='';for(const c of list){const b=el('button');b.style.background=c;b.setAttribute('aria-label',label+' '+c);b.setAttribute('aria-pressed',draft[key]===c);b.onclick=()=>{draft[key]=c;renderForm();if(after)after();rebuildPv()};box.append(b)}}
 $('#bH').oninput=e=>{draft.h=+e.target.value;renderForm();rebuildPv()};$('#bW').oninput=e=>{draft.w=+e.target.value;renderForm();rebuildPv()};
-function openCreator(c){if(!S.canWrite){toast('보기 전용이라 만들 수 없어요.');return}
+const isFighting=id=>{const e=ents.get(id);return!!e&&(e.state==='battle'||e.state==='duel'||(duel&&(duel.a===e||duel.b===e)))};
+function openCreator(c){if(!S.canWrite){toast('보기 전용이라 만들 수 없어요.');return}if(c&&isFighting(c.id)){toast('전투 중에는 캐릭터를 수정할 수 없어요. 전투가 끝나면 다시 시도해 주세요.');return}
  editId=c?c.id:null;draft=c?Object.assign({},c):newDraft();draft.feat=cleanFeat(draft.feat);skinPicked=!!c;
  $('#cTitle').textContent=c?c.nick+' 수정':'캐릭터 만들기';$('#cSave').textContent=c?'저장하기':'광장에 내보내기';$('#cDel').hidden=!c;
  $('#bH').value=draft.h;$('#bW').value=draft.w;$('#nNick').value=draft.nick||'';$('#nReal').value=draft.real||'';$('#nLine').value=draft.line||'';$('#nPin').value='';$('#pinHint').textContent=c?'바꿀 때만 입력':'수정·전투할 때 확인용';$('#cErr').textContent='';
@@ -1514,7 +1545,7 @@ async function autoMark(silent){if(!hasFD||!crop.img)return;try{const fd=new Fac
  crop.s=Math.min(CW*0.85/bb.width,CH*0.75/bb.height);crop.ox=0;crop.oy=0;const c=toS([bb.x+bb.width/2,bb.y+bb.height/2]);crop.ox=CW/2-c[0];crop.oy=CH/2-c[1];setZoomRange();makeFace()}catch(e){if(!silent)toast('자동으로 찍을 수 없어요. 직접 찍어 주세요.')}}
 $('#fAuto').onclick=()=>autoMark(false);
 
-$('#cSave').onclick=async()=>{const err=$('#cErr');err.textContent='';const nick=$('#nNick').value.trim(),real=$('#nReal').value.trim(),line=$('#nLine').value.trim().slice(0,40),pin=$('#nPin').value.trim();
+$('#cSave').onclick=async()=>{const err=$('#cErr');err.textContent='';if(editId&&isFighting(editId)){err.textContent='전투 중이라 지금은 저장할 수 없어요. 전투가 끝나면 다시 눌러 주세요.';return}const nick=$('#nNick').value.trim(),real=$('#nReal').value.trim(),line=$('#nLine').value.trim().slice(0,40),pin=$('#nPin').value.trim();
  if(!nick){err.textContent='닉네임을 적어 주세요.';return}
  for(const c of S.chars.values())if(c.id!==editId&&c.nick.toLowerCase()===nick.toLowerCase()){err.textContent='이미 있는 닉네임이에요.';return}
  if(!editId&&!/^\d{4}$/.test(pin)){err.textContent='PIN은 숫자 4자리로 정해 주세요.';return}
