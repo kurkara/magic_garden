@@ -28,6 +28,8 @@ button,input{font:inherit;color:inherit}
 button{cursor:pointer;border:1px solid var(--line);background:var(--panel);border-radius:12px;min-height:44px;padding:0 14px;font-weight:600}
 button:focus-visible,input:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
 button.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+button.danger{background:#fff;border-color:#c0303a;color:#c0303a}
+button.danger.sure{background:#c0303a;color:#fff}
 button.sec{background:var(--acc2);border-color:var(--acc2);color:#fff}
 button:disabled{opacity:.45;cursor:not-allowed}
 #stage{position:fixed;inset:0}
@@ -253,9 +255,16 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:30px}
       <button id="gJoin" class="pri">입장하기</button>
       <div class="or">또는</div>
       <label class="fld">새 광장 이름<input id="gName" maxlength="20" autocomplete="off" placeholder="예: 화공 2학년 광장"></label>
+      <label class="fld">관리 비밀번호 <span class="sm">광장을 지울 때 필요해요 (4자 이상)</span><input id="gPw" type="password" maxlength="20" autocomplete="new-password"></label>
       <button id="gNew" class="sec">새 광장 만들기</button>
       <span id="gErr"></span>
       <div id="gRecent" class="stack"></div>
+      <div id="gAdmin" class="stack" hidden>
+        <div class="or">광장 관리</div>
+        <p class="sm" id="gAdminTxt">이 광장을 만들 때 정한 관리 비밀번호를 넣으면 광장과 모든 캐릭터·전투 기록을 지울 수 있어요. 되돌릴 수 없어요.</p>
+        <label class="fld">관리 비밀번호<input id="gDelPw" type="password" maxlength="20" autocomplete="off"></label>
+        <button id="gDel" class="danger">이 광장 삭제</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1192,7 +1201,7 @@ function enterPlaza(code){
  if(S.local){const L=ls.get('plaza-local-'+code)||{};for(const c of L.chars||[]){const x=cleanChar(c.id,c);if(x)S.chars.set(x.id,x)}for(const b of L.battles||[]){const x=cleanBattle(b.id,b);if(x)S.battles.set(x.id,x)}
   const r=recent().find(r=>r.code===code);if(r&&r.name){S.pname=r.name;$('#pName').textContent=r.name}S.loaded=true;refreshAll();return}
  const my=code;const tm=setTimeout(()=>{if(!S.loaded&&S.code===my)$('#note').textContent='공유 광장에 아직 연결되지 않았어요. 잠시만 기다려 주세요.'},10000);
- S.unsubs.push(S.db.doc(P()).onSnapshot(d=>{if(S.code!==my)return;if(d.exists){const n=d.data().name;S.missing=false;if(typeof n==='string'&&n){S.pname=n.slice(0,20);$('#pName').textContent=S.pname;remember(my,S.pname)}}else if(!d.metadata.fromCache)S.missing=true;setNote()},()=>{}));
+ S.unsubs.push(S.db.doc(P()).onSnapshot(d=>{if(S.code!==my)return;if(d.exists){S.pmeta=d.data();const n=d.data().name;S.missing=false;if(typeof n==='string'&&n){S.pname=n.slice(0,20);$('#pName').textContent=S.pname;remember(my,S.pname)}}else if(!d.metadata.fromCache)S.missing=true;setNote()},()=>{}));
  S.unsubs.push(S.db.collection(P()+'/chars').onSnapshot(snap=>{if(S.code!==my)return;clearTimeout(tm);S.loaded=true;setNote();S.chars.clear();for(const d of snap.docs){const x=cleanChar(d.id,d.data());if(x)S.chars.set(x.id,x)}refreshAll()},
   e=>{clearTimeout(tm);S.loaded=true;$('#note').textContent='광장 정보를 불러오지 못했어요 ('+(e&&e.code||'오류')+').';refreshAll()}));
  S.unsubs.push(S.db.collection(P()+'/battles').onSnapshot(snap=>{if(S.code!==my)return;S.battles.clear();for(const d of snap.docs){const x=cleanBattle(d.id,d.data());if(x)S.battles.set(x.id,x)}renderPanel();prune()},()=>{}))}
@@ -1202,12 +1211,14 @@ async function joinPlaza(raw){const err=$('#gErr');err.textContent='';if(!S.read
  if(!S.local){try{const d=await S.db.doc('plazas/'+code).get();if(!d.exists){err.textContent='그 코드의 광장이 없어요.';return}}catch(e){err.textContent='확인하지 못했어요. 다시 시도해 주세요.';return}}
  $('#mGate').hidden=true;if(code===S.code)return;location.hash=code}
 async function createPlaza(raw){const err=$('#gErr');err.textContent='';if(!S.ready){err.textContent='아직 연결하는 중이에요.';return}const name=raw.trim().slice(0,20)||'마법 광장';
+ const pw=$('#gPw').value;if(pw.length<4){err.textContent='관리 비밀번호를 4자 이상 정해 주세요.';$('#gPw').focus();return}
  if(!S.canWrite){err.textContent='보기 전용이라 광장을 만들 수 없어요.';return}
  let code=genCode();
  if(!S.local){const b=$('#gNew');b.disabled=true;try{for(let i=0;i<5;i++){const d=await S.db.doc('plazas/'+code).get();if(!d.exists)break;code=genCode()}
-   await S.db.doc('plazas/'+code).set({name,at:Date.now(),owner:S.me||''})}catch(e){b.disabled=false;writeErr(e);return}b.disabled=false}
+   await S.db.doc('plazas/'+code).set({name,at:Date.now(),owner:S.me||'',ph:String(hash32(code+':pw:'+pw))})}catch(e){b.disabled=false;writeErr(e);return}b.disabled=false}
+ else ls.set('plaza-ph-'+code,String(hash32(code+':pw:'+pw)));$('#gPw').value='';
  remember(code,name);$('#mGate').hidden=true;location.hash=code;toast('새 광장 코드: '+code+' — 친구에게 알려 주세요!')}
-function openGate(){const m=$('#mGate');m.hidden=false;$('#gClose').hidden=!S.code;$('#gErr').textContent='';$('#gCode').value='';
+function openGate(){const m=$('#mGate');m.hidden=false;$('#gClose').hidden=!S.code;$('#gErr').textContent='';$('#gCode').value='';$('#gAdmin').hidden=!S.code;$('#gDelPw').value='';const gd=$('#gDel');gd.classList.remove('sure');gd.textContent='이 광장 삭제';
  const box=$('#gRecent');box.textContent='';const l=recent().filter(r=>r.code!==S.code);
  if(l.length){box.append(el('div','fld','최근 들어간 광장'));const g=el('div','opp');for(const r of l){const b=el('button','opt');b.append(el('span',null,r.name||'마법 광장'),el('small',null,r.code));b.onclick=()=>joinPlaza(r.code);g.append(b)}box.append(g)}
  if(!S.ready){$('#gErr').textContent='연결하는 중…'}setTimeout(()=>$('#gCode').focus(),50)}
@@ -1541,6 +1552,20 @@ $('#bMe').onclick=openMe;
 
 /* ---------- start ---------- */
 $('#gJoin').onclick=()=>joinPlaza($('#gCode').value);$('#gCode').onkeydown=e=>{if(e.key==='Enter')joinPlaza($('#gCode').value)};
+async function deletePlaza(){const err=$('#gErr');err.textContent='';const code=S.code;if(!code)return;const pw=$('#gDelPw').value;const h=String(hash32(code+':pw:'+pw));
+ const ph=S.local?ls.get('plaza-ph-'+code):(S.pmeta&&S.pmeta.ph);
+ if(!ph){err.textContent='이 광장은 관리 비밀번호 없이 만들어져서 여기서 지울 수 없어요.';return}
+ if(h!==ph){err.textContent='관리 비밀번호가 맞지 않아요.';return}
+ const b=$('#gDel');if(!b.classList.contains('sure')){b.classList.add('sure');b.textContent='정말 지울까요? 한 번 더 누르면 삭제돼요';return}
+ b.disabled=true;
+ try{if(S.local){ls.set('plaza-local-'+code,null);ls.set('plaza-ph-'+code,null)}
+  else{const ids=[...[...S.chars.keys()].map(id=>P()+'/chars/'+id),...[...S.battles.keys()].map(id=>P()+'/battles/'+id)];
+   for(let i=0;i<ids.length;i+=400){const bt=S.db.batch();for(const pth of ids.slice(i,i+400))bt.delete(S.db.doc(pth));await bt.commit()}
+   await S.db.doc(P()).delete()}}
+ catch(e){b.disabled=false;err.textContent='삭제하지 못했어요. 보안 규칙이 최신인지 확인해 주세요.';return}
+ b.disabled=false;ls.set('plaza-recent',recent().filter(r=>r.code!==code));ls.set('plaza-me-'+code,null);
+ for(const u of S.unsubs)u();S.unsubs=[];S.chars.clear();S.battles.clear();S.code=null;refreshAll();history.replaceState(null,'',location.pathname+location.search);toast('광장을 삭제했어요.');openGate()}
+$('#gDel').onclick=deletePlaza;
 $('#gNew').onclick=()=>createPlaza($('#gName').value);$('#gName').onkeydown=e=>{if(e.key==='Enter')createPlaza($('#gName').value)};
 $('#bGate').onclick=openGate;
 $('#bCode').onclick=async()=>{if(!S.code){openGate();return}try{await navigator.clipboard.writeText(S.code);toast('광장 코드 '+S.code+' 복사했어요')}catch(e){toast('광장 코드: '+S.code)}};
