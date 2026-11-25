@@ -1269,9 +1269,10 @@ function pushOut(e){const d=Math.hypot(e.x,e.z);if(d<4.3){const k=4.3/(d||1);e.x
 const angLerp=(a,b,t)=>{let d=((b-a+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI;return a+d*t};
 function updEnt(e,dt,T){const r=e.r;if(!r)return;let tx,tz;
  if(e.state==='free'){[tx,tz]=pathPos(e.seed,T)}else{tx=e.spot[0];tz=e.spot[1]}
- {const R=4.7,t2=Math.hypot(tx,tz);if(t2<R){tx*=R/(t2||1);tz*=R/(t2||1)}
-  const px=e.x,pz=e.z,vx=tx-px,vz=tz-pz,L2=vx*vx+vz*vz;if(L2>0.01){const u=clamp(-(px*vx+pz*vz)/L2,0,1);
-   if(Math.hypot(px+vx*u,pz+vz*u)<R-0.05){const a=Math.atan2(px,pz);let da=Math.atan2(tx,tz)-a;da=Math.atan2(Math.sin(da),Math.cos(da));const na=a+(da>=0?1:-1)*0.55,rr=Math.max(R+0.35,Math.hypot(px,pz));tx=Math.sin(na)*rr;tz=Math.cos(na)*rr}}}
+ {const R=4.7,t2=Math.hypot(tx,tz);if(t2<R+0.3){tx*=(R+0.3)/(t2||1);tz*=(R+0.3)/(t2||1)}
+  const px=e.x,pz=e.z,vx=tx-px,vz=tz-pz,L2=vx*vx+vz*vz,pr=Math.hypot(px,pz)||1;const u=L2>0.01?clamp(-(px*vx+pz*vz)/L2,0,1):1;
+  if(L2>0.01&&Math.hypot(px+vx*u,pz+vz*u)<R+0.1){const ux=px/pr,uz=pz/pr;if(!e.av){const cr=ux*vz-uz*vx;e.av=Math.abs(cr)<0.05*Math.sqrt(L2)?((e.seed&1)?1:-1):(cr<0?1:-1)}
+   const k=clamp((R+0.5-pr)*1.5,-0.6,0.8);let wx=e.av*uz+ux*k,wz=-e.av*ux+uz*k;const wl=Math.hypot(wx,wz)||1;tx=px+wx/wl*1.2;tz=pz+wz/wl*1.2}else e.av=0}
  const dx=tx-e.x,dz=tz-e.z,d=Math.hypot(dx,dz);let sp=0;
  if(d>0.02){const mx=(e.state==='free'?Math.max(2.4,d*1.2):2.2)*dt;const s=Math.min(d,mx);e.x+=dx/d*s;e.z+=dz/d*s;sp=s/dt;if(sp>0.15&&e.state!=='battle')e.face=Math.atan2(dx,dz)}
  pushOut(e);
