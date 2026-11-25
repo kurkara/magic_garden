@@ -1317,7 +1317,7 @@ function updEnt(e,dt,T){const r=e.r;if(!r)return;let tx,tz;
   if(L2>0.01&&Math.hypot(px+vx*u,pz+vz*u)<R+0.1){const ux=px/pr,uz=pz/pr;if(!e.av){const cr=ux*vz-uz*vx;e.av=Math.abs(cr)<0.05*Math.sqrt(L2)?((e.seed&1)?1:-1):(cr<0?1:-1)}
    const k=clamp((R+0.5-pr)*1.5,-0.6,0.8);let wx=e.av*uz+ux*k,wz=-e.av*ux+uz*k;const wl=Math.hypot(wx,wz)||1;tx=px+wx/wl*1.2;tz=pz+wz/wl*1.2}else e.av=0}
  const dx=tx-e.x,dz=tz-e.z,d=Math.hypot(dx,dz);let sp=0;
- if(d>0.02){const mx=(e.state==='free'?Math.max(2.4,d*1.2):2.2)*dt;const s=Math.min(d,mx);e.x+=dx/d*s;e.z+=dz/d*s;sp=s/dt;if(sp>0.15&&e.state!=='battle')e.face=Math.atan2(dx,dz)}
+ if(d>0.02){const mx=(e.state==='free'?Math.max(2.4,d*1.2):e.state==='sneak'?Math.max(2.6,d*1.3):(e.state==='flee'||e.state==='chase')?3.8:e.state==='scatter'?4.2:e.state==='begwalk'?1.6:2.2)*dt;const s=Math.min(d,mx);e.x+=dx/d*s;e.z+=dz/d*s;sp=s/dt;if(sp>0.15&&e.state!=='battle')e.face=Math.atan2(dx,dz)}
  pushOut(e);
  if((e.state==='battle'||e.state==='chat')&&e.foe&&e.foe.r)e.face=Math.atan2(e.foe.x-e.x,e.foe.z-e.z);
  if(e.state==='watch'&&e.watchC&&sp<0.15)e.face=Math.atan2(e.watchC[0]-e.x,e.watchC[1]-e.z);
@@ -1325,6 +1325,8 @@ function updEnt(e,dt,T){const r=e.r;if(!r)return;let tx,tz;
  if(e.state==='brew'&&e.brew)e.face=Math.atan2(e.brew.cx-e.x,e.brew.cz-e.z);
  if(e.state==='audience'&&e.perfB&&sp<0.15)e.face=Math.atan2(e.perfB.x-e.x,e.perfB.z-e.z);
  if(e.state==='perform')e.face=e.perfFace;
+ if(e.state==='gossip'&&e.gos&&sp<0.15)e.face=Math.atan2(e.gos.cx-e.x,e.gos.cz-e.z);
+ if(e.state==='robbed'&&e.robT)e.face=e.robF;
  if(e.throwT>0){e.throwT-=dt;if(e.throwAt&&e.throwAt.r)e.face=Math.atan2(e.throwAt.x-e.x,e.throwAt.z-e.z)}
  e.head=angLerp(e.head,e.face,Math.min(1,dt*8));
  e.phase+=sp*dt*5;const amp=Math.min(1,sp/1.1)*(r.robe?0.35:0.7);const sw=Math.sin(e.phase)*amp;
@@ -1352,6 +1354,10 @@ function updEnt(e,dt,T){const r=e.r;if(!r)return;let tx,tz;
  if(e.state==='audience'&&sp<0.1&&Math.hypot(e.x-e.spot[0],e.z-e.spot[1])<0.15){r.legs[0].rotation.x=r.legs[1].rotation.x=-1.45;y+=-(r.hipY||0.35)+0.1;r.arms[0].rotation.x=r.arms[1].rotation.x=-0.6+(Math.sin(T*5+e.seed)>0.7?-0.5:0)}
  if(e.state==='chat'&&e.shy&&sp<0.15){const k=T*2.2+e.seed;r.arms[1].rotation.x=-2.6+Math.sin(k*2)*0.15;r.arms[0].rotation.x=0.35;r.body.rotation.y=Math.sin(k)*0.3;rx+=0.16;y+=Math.abs(Math.sin(k*1.5))*0.02;
   for(const m of r.mats)if(m.emissive)m.emissive.setHex(0x2a0a14)}else if(e.shyGlow!==e.shy){for(const m of r.mats)if(m.emissive)m.emissive.setHex(0)}e.shyGlow=e.state==='chat'&&e.shy;
+ if(e.state==='sneak'&&e.reachT>0){e.reachT-=dt;r.arms[0].rotation.x=r.arms[1].rotation.x=-1.3+Math.sin(T*14)*0.15;rx+=0.2}else if(e.state==='sneak'&&sp>0.1){rx+=0.25}
+ if(e.state==='gossip'&&sp<0.1){const k=T*3+e.seed;if(Math.sin(k*0.7)>0.3)r.arms[1].rotation.x=-0.9+Math.sin(k*3)*0.4;y+=Math.abs(Math.sin(k))*0.02}
+ if(e.state==='chase'&&sp>0.5)r.arms[1].rotation.x=-2.6+Math.sin(T*10)*0.3;
+ if(e.c.cls==='beggar')flies(e,r,T);
  if(e.state==='sitwalk'&&Math.hypot(e.x-e.spot[0],e.z-e.spot[1])<0.08){e.state='sit';e.sitUntil=T+12+hrand(Math.floor(T),e.seed^7)*10;e.nextSay=T+1+hrand(Math.floor(T),e.seed^3)*2}
  r.g.position.set(e.x+Math.sin(e.head)*lunge+Math.cos(e.head)*side+swx,y,e.z+Math.cos(e.head)*lunge-Math.sin(e.head)*side+swz);r.g.rotation.set(rx,e.head+ry,0,'YXZ')}
 
@@ -1429,8 +1435,11 @@ function detect(T){const bucket=Math.floor(T/240),cb=Math.floor(T/90);const free
  for(const e of free){if((e.sitCool||0)>T)continue;let best=null,bd=1e9,join=false;for(const tb of TABLES){const occ=tb.seats.some(q=>q.occ);for(const st of tb.seats){if(st.occ)continue;const d=Math.hypot(e.x-st.x,e.z-st.z);if(d<(occ?6.5:3)&&d<bd){bd=d;best=st;join=occ}}}
   if(best&&hrand(Math.floor(T*4),e.seed^0x5eed)<(join?0.5:0.12)){best.occ=e.id;e.seat=best;e.state='sitwalk';e.spot=[best.x,best.z]}else if(best)e.sitCool=T+6}
  const tk=Math.floor(T*4);
+ for(const e of ents.values())if(e.state==='scatter'&&(e.scatT-=0.25)<=0){e.state='free';e.cool=T+3}
+ if(!gossip&&T>gosNext&&free.length){const sd=free[Math.floor(hrand(tk,0x6055)*free.length)];if(sd.c.cls!=='beggar'&&sd.state==='free'&&!startGossip(sd,T))gosNext=T+15}
  for(const p of ents.values())if(p.state==='perform'&&p.aud){p.aud=p.aud.filter(o=>o.state==='audience'&&o.perfB===p);for(const o of free)if(o.state==='free'&&o!==p&&Math.hypot(o.x-p.x,o.z-p.z)<7&&hrand(tk,o.seed^0xa0d)<0.3)joinAud(p,o)}
  for(const e of free){if(e.state!=='free')continue;const cl=e.c.cls;
+  if(cl==='rogue'&&!thefts.length&&(e.thiefCool||0)<T&&hrand(tk,e.seed^0x7eef)<0.02){const v=free.filter(o=>o!==e&&o.state==='free'&&Math.hypot(o.x-e.x,o.z-e.z)<7)[0];if(v){startTheft(e,v);continue}}
   if(cl==='alchemist'&&(e.brewCool||0)<T&&hrand(tk,e.seed^0xb4e)<0.025)startBrew(e,T);
   else if(cl==='bard'&&(e.perfCool||0)<T&&hrand(tk,e.seed^0xba4d)<0.02)startPerform(e,T);
   else if(cl==='beggar')for(const o of free){if(o===e||o.state!=='free'||o.c.cls==='beggar'||(o.stoneCool||0)>T)continue;if(Math.hypot(o.x-e.x,o.z-e.z)<3.5&&hrand(tk,o.seed^e.seed^0x570e)<0.08){o.stoneCool=T+10;throwStone(o,e)}}}
@@ -1442,6 +1451,44 @@ function detect(T){const bucket=Math.floor(T/240),cb=Math.floor(T/90);const free
   if(!fought.has(bid)&&hrand(hash32(bid),7)<0.4){startBattle(bid,a,b,'plaza');continue}
   if(!chatted.has(cid))startChat(cid,a,b)}}
 let duel=null;const stones=[];
+const FLY_G=new THREE.BoxGeometry(0.045,0.045,0.045),FLY_M=new THREE.MeshBasicMaterial({color:'#141216'}),FLYW_M=new THREE.MeshBasicMaterial({color:'#d8e4ec',transparent:true,opacity:0.7}),FLYW_G=new THREE.BoxGeometry(0.08,0.005,0.03);
+function flies(e,r,T){if(!r.flies||r.flies[0].parent!==r.g){r.flies=[];for(let i=0;i<4;i++){const f=new THREE.Mesh(FLY_G,FLY_M);const w=new THREE.Mesh(FLYW_G,FLYW_M);w.position.y=0.03;f.add(w);r.g.add(f);r.flies.push(f)}}
+ const top=r.top||1.6;r.flies.forEach((f,i)=>{const k=T*(2.2+i*0.37)+i*1.7;f.position.set(Math.sin(k)*(0.45+0.12*Math.sin(k*2.3)),top*(0.55+0.3*((i%2)?Math.sin(k*1.7)*0.5+0.5:Math.cos(k*1.3)*0.5+0.5)),Math.cos(k*1.13)*(0.45+0.1*Math.cos(k*3.1)));f.children[0].scale.x=0.4+Math.abs(Math.sin(T*60+i))})}
+function bubble(e,txt){if(!e.bubEl)return;if(txt){e.bubEl.textContent=txt;e.bubEl.classList.add('on')}else e.bubEl.classList.remove('on')}
+const thefts=[];
+function free1(e,c){if(!e)return;if(e.state==='sneak'||e.state==='robbed'||e.state==='flee'||e.state==='chase'){e.state='free';e.cool=Date.now()/1000+(c||4)}e.reachT=0;e.robT=0}
+function startTheft(r,v){r.state='sneak';r.spot=[r.x,r.z];r.thiefCool=Date.now()/1000+80;thefts.push({r,v,ph:0,t:0,ch:[]})}
+function stepTheft(th,dt,T){const R=th.r,V=th.v;th.t+=dt;
+ if(!ents.has(R.id)||!R.r){free1(V);th.ch.forEach(c=>free1(c));thefts.splice(thefts.indexOf(th),1);return}
+ if(th.ph===0){if(!ents.has(V.id)||V.state!=='free'&&V.state!=='robbed'||th.t>9){free1(R);free1(V);thefts.splice(thefts.indexOf(th),1);return}
+  const bx=V.x-Math.sin(V.head)*0.75,bz=V.z-Math.cos(V.head)*0.75;R.spot=[bx,bz];
+  if(Math.hypot(R.x-bx,R.z-bz)<0.4){th.ph=1;th.t=0;V.state='robbed';V.spot=[V.x,V.z];V.robT=1;V.robF=V.head;R.reachT=1.5;floatText(R,'슬쩍…','#c8c4d8')}}
+ else if(th.ph===1){if(th.t>1.6){floatText(V,'?!','#ffe169',true);
+   const near=[...ents.values()].filter(o=>o!==R&&o!==V&&o.state==='free'&&o.r&&Math.hypot(o.x-V.x,o.z-V.z)<6).sort((a,b)=>Math.hypot(a.x-V.x,a.z-V.z)-Math.hypot(b.x-V.x,b.z-V.z));
+   if(!near.length){floatText(R,'득템 ✨','#ffe169');free1(R,10);free1(V);thefts.splice(thefts.indexOf(th),1);return}
+   const w=near[0];floatText(w,'도둑이야!!','#ff6a6a',true);
+   const more=[...ents.values()].filter(o=>o!==R&&o!==V&&o!==w&&o.state==='free'&&o.r&&Math.hypot(o.x-V.x,o.z-V.z)<9).slice(0,3);
+   th.ch=[w,V,...more];V.robT=0;for(const c of th.ch){c.state='chase';c.spot=[c.x,c.z]}R.state='flee';R.reachT=0;
+   th.ph=2;th.t=0;th.a0=Math.atan2(R.x,R.z);th.dir=hrand(Math.floor(T),R.seed)<0.5?1:-1;floatText(R,'헉!','#ffffff',true)}}
+ else{const RR=6.3,w=0.55,a=th.a0+th.dir*w*th.t;R.spot=[Math.sin(a)*RR,Math.cos(a)*RR];
+  th.ch.forEach((c,i)=>{if(!ents.has(c.id))return;const b=a-th.dir*(0.6+i*0.32);c.spot=[Math.sin(b)*RR,Math.cos(b)*RR];if(Math.random()<dt*0.25)floatText(c,['거기 서!','잡아라!','내 지갑!!','멈춰!'][i%4],'#ff8a6a')});
+  if(Math.random()<dt*0.2)floatText(R,'헉헉','#e0dcd4');
+  if(th.t>2.3*Math.PI*2/w){floatText(R,'휴… 따돌렸다','#c8c4d8');free1(R,12);th.ch.forEach(c=>{free1(c,6);if(ents.has(c.id))floatText(c,'헥헥…','#e0dcd4')});thefts.splice(thefts.indexOf(th),1)}}}
+let gossip=null,gosNext=Date.now()/1000+25;
+function startGossip(seed,T){const mem=[seed,...[...ents.values()].filter(o=>o!==seed&&o.state==='free'&&o.r&&o.c.cls!=='beggar'&&o.cool<T&&Math.hypot(o.x-seed.x,o.z-seed.z)<9)].slice(0,6);if(mem.length<3)return false;
+ let cx=seed.x,cz=seed.z;const d=Math.hypot(cx,cz)||1;const rr=clamp(d,6.5,13.5);cx=cx/d*rr;cz=cz/d*rr;
+ const g={cx,cz,mem,t:0,ph:0,nt:0};mem.forEach((e,i)=>{const a=i/mem.length*Math.PI*2+0.3,R=0.95+mem.length*0.08;e.state='gossip';e.gos=g;e.spot=[cx+Math.sin(a)*R,cz+Math.cos(a)*R]});gossip=g;
+ const beg=[...ents.values()].find(o=>o.c.cls==='beggar'&&o.state==='free'&&o.r&&Math.hypot(o.x-cx,o.z-cz)<14);if(beg&&hrand(Math.floor(T),beg.seed^0x9a)<0.6){g.beg=beg;g.begAt=4+hrand(Math.floor(T),7)*5}return true}
+function endGossip(g,scat,from){for(const e of g.mem){bubble(e,'');e.gos=null;if(e.state!=='gossip')continue;
+  if(scat){let dx=e.x-from.x,dz=e.z-from.z;const d=Math.hypot(dx,dz)||1;let sx=e.x+dx/d*5,sz=e.z+dz/d*5;const r=Math.hypot(sx,sz);if(r>15){sx*=15/r;sz*=15/r}e.state='scatter';e.spot=[sx,sz];e.scatT=2.4}else{e.state='free';e.cool=Date.now()/1000+4}}
+ if(g.beg&&g.beg.state==='begwalk'){g.beg.state='free';g.beg.cool=Date.now()/1000+5}gossip=null;gosNext=Date.now()/1000+70+Math.random()*40}
+function stepGossip(dt,T){const g=gossip;if(!g)return;g.t+=dt;g.mem=g.mem.filter(e=>ents.has(e.id)&&e.state==='gossip');if(g.mem.length<2){endGossip(g);return}
+ g.nt-=dt;if(g.t>1.5&&g.nt<=0){g.nt=1.1;const who=g.mem[Math.floor(Math.random()*g.mem.length)];for(const e of g.mem)bubble(e,e===who?['(…)','(...)','(…!)','(ㅋㅋ)','(…?)'][Math.floor(Math.random()*5)]:'')}
+ if(g.beg&&g.t>g.begAt&&g.beg.state==='free'){g.beg.state='begwalk';g.beg.spot=[g.cx,g.cz]}
+ if(g.beg&&g.beg.state==='begwalk')g.beg.spot=[g.cx+Math.sin(g.t)*0.2,g.cz];
+ const bg=[...ents.values()].find(o=>o.c.cls==='beggar'&&o.r&&o.state!=='battle'&&Math.hypot(o.x-g.cx,o.z-g.cz)<3.1);
+ if(bg){for(const e of g.mem){bubble(e,'(!)');}const B=bg;const m=g.mem.slice();later(0.7,()=>{for(const e of m)if(e.state==='gossip'){bubble(e,'');floatText(e,['으악 냄새!','윽!','도망가!','(!)'][Math.floor(Math.random()*4)],'#c8ff8a')}endGossip(g,true,B);if(ents.has(B.id))floatText(B,'…왜들 그래','#c8c4d8')});g.mem.forEach(e=>e.state==='gossip'&&(e.spot=[e.x,e.z]));gossip=Object.assign(g,{t:-1e9});gossip=null;return}
+ if(g.t>16)endGossip(g)}
 function throwStone(o,b){o.throwT=0.9;o.throwAt=b;o.atkT=0.45;later(0.22,()=>{if(!o.r||!b.r)return;const m=mesh(new THREE.DodecahedronGeometry(0.09,0),M('#8a8680'),o.x,1.1,o.z);scene.add(m);stones.push({m,ax:o.x,az:o.z,b,t:0})})}
 function shootProj(a,b,kind,done){const g=new THREE.Group();
  if(kind==='arrow'){const sh=mesh(new THREE.CylinderGeometry(0.02,0.02,0.6,4),M('#8a5a32'),0,0,0);sh.rotation.x=Math.PI/2;g.add(sh);const tip=mesh(new THREE.ConeGeometry(0.05,0.12,4),M('#c8ccd4',{shininess:60}),0,0,0.34);tip.rotation.x=Math.PI/2;g.add(tip);
@@ -1510,7 +1557,7 @@ function frame(now){const dt=Math.min(0.05,(now-last)/1000);last=now;const T=Dat
  detT-=dt;if(detT<=0){detect(T);detT=0.25}
  for(const b of[...battles])stepBattle(b,dt);
  for(const c of[...chats])stepChat(c,dt);
- stepStones(dt);stepProps(T);for(const sw of SWINGS){const o=sw.swing;const occ=sw.seats.some(q=>q.occ&&ents.has(q.occ)&&ents.get(q.occ).state==='sit');o.amp+=((occ?0.16:0.025)-o.amp)*Math.min(1,dt*0.8);o.th=Math.sin(T*1.7+o.ph)*o.amp;o.pv.rotation.x=o.th}for(const e of ents.values())if(e.state==='audience'&&(!e.perfB||!ents.has(e.perfB.id)||e.perfB.state!=='perform')){e.state='free';e.perfB=null}
+ stepStones(dt);stepProps(T);for(const th of[...thefts])stepTheft(th,dt,T);stepGossip(dt,T);for(const sw of SWINGS){const o=sw.swing;const occ=sw.seats.some(q=>q.occ&&ents.has(q.occ)&&ents.get(q.occ).state==='sit');o.amp+=((occ?0.16:0.025)-o.amp)*Math.min(1,dt*0.8);o.th=Math.sin(T*1.7+o.ph)*o.amp;o.pv.rotation.x=o.th}for(const e of ents.values())if(e.state==='audience'&&(!e.perfB||!ents.has(e.perfB.id)||e.perfB.state!=='perform')){e.state='free';e.perfB=null}
  for(let i=timers.length-1;i>=0;i--){timers[i].t-=dt;if(timers[i].t<=0){const f=timers[i].fn;timers.splice(i,1);f()}}
  for(let i=fx.length-1;i>=0;i--){const f=fx[i];f.t+=dt;f.m.scale.setScalar(1+f.t*6);f.m.material.opacity=Math.max(0,1-f.t/0.5);if(f.t>0.5){scene.remove(f.m);f.m.geometry.dispose();f.m.material.dispose();fx.splice(i,1)}}
  fountain.orb.rotation.y+=dt;fountain.orb.position.y=2.85+Math.sin(T*2)*0.08;
