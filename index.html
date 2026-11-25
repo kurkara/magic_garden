@@ -328,37 +328,37 @@ const ago=t=>{const s=(Date.now()-t)/1000;if(s<60)return'방금';if(s<3600)retur
 /* ---------- data ---------- */
 // outfit: [name,[main,sub,accent],lower,head,cape]
 const CLASSES=[
-{id:'sword',n:'검사',g:'전투',w:'longsword',st:[107,17,9,10],sk:['연속 베기','double'],o:[
+{id:'sword',n:'검사',g:'전투',w:'longsword',st:[110,17,9,10],sk:['연속 베기','double'],o:[
  ['푸른 망토',['#c9ccd4','#8d939e','#2a3566'],'pants','none','#26305e',{armor:1,mantle:'#e8dfc8'}],['흑철 갑주',['#3c4458','#262c3e','#c9a440'],'pants','none','#1c2238',{armor:1,emblem:1,blood:1,w:'longswordB'}],['투구 기사',['#b9bdc6','#7d838e','#2a3566'],'pants','visor','#26305e',{armor:1,plume:'#2a3566'}]]},
-{id:'archer',n:'궁수',g:'전투',w:'recurve',st:[77,18,6,14],sk:['관통 화살','pierce'],o:[
+{id:'archer',n:'궁수',g:'전투',w:'recurve',st:[76,18,6,14],sk:['관통 화살','pierce'],o:[
  ['숲의 순찰자',['#4a6a34','#33482a','#a8c070'],'pants','none','#3e5a30',{ranger:1,cowl:1,leafcape:1}],['가죽 궁수',['#6a4a30','#4a3424','#c9a440'],'pants','none','#5a3e2a',{ranger:1,emb:1,shirt:'#f2eee6',w:'recurveG',goldboot:1}],['피의 궁수',['#a3242a','#5a1a1e','#e0b84a'],'pants','none','#6a141a',{ranger:1,guard:1}]]},
-{id:'rogue',n:'도적',g:'전투',w:'daggers',st:[64,19,5,16],sk:['스킬 훔치기','steal'],o:[
+{id:'rogue',n:'도적',g:'전투',w:'daggers',st:[62,19,5,16],sk:['스킬 훔치기','steal'],o:[
  ['골목 소매치기',['#6b5038','#4a3a2c','#a03a2c'],'pants','bandana',null,{rogue:1,eyepatch:1,belts:1,mesh:1,panel:'short',shin:1}],['길드 암살자',['#5a3e2a','#3a2a22','#c9a440'],'pants','hood','#6a4a32',{rogue:1,capelet:1,mask:1,belts:1,mesh:1,panel:'long',shin:1,tattoo:1,pad:1}],['해적',['#2e2a30','#4a3a28','#9a4a34'],'pants','bandana',null,{pirate:1,w:'cutlass'}]]},
-{id:'wizard',n:'마법사',g:'마법',w:'staff',st:[86,23,4,9],sk:['화염구','pierce'],o:[
+{id:'wizard',n:'마법사',g:'마법',w:'staff',st:[89,23,4,9],sk:['화염구','pierce'],o:[
  ['별무늬 로브',['#4a3aa8','#c8c0f0','#f2e07a'],'robe','wizhat',null,{wiz:1,pat:14,mage:1,trim:'#f2e07a',mantle:1,w:'astrostaff',hand:'#bfe0ff'}],['어둠의 방랑자',['#2e3a34','#3e3428','#e08a3a'],'robe','widehat','#26302a',{wiz:1,pat:0,collar:1,mage:1,trim:'#8a7a5a',w:'emberstaff',hand:'#ff9a3a'}],['청색 학자',['#2a4a7a','#6a4a2e','#c8ccd4'],'robe','none',null,{wiz:1,pat:0,mage:1,trim:'#c8ccd4',vest:1,highcollar:1,mantle:1,w:'clawstaff',hand:'#ffb03a'}]]},
-{id:'warlock',n:'흑마법사',g:'마법',w:'curseorb',st:[102,19,5,10],sk:['저주','dot'],o:[
+{id:'warlock',n:'흑마법사',g:'마법',w:'curseorb',st:[104,19,5,10],sk:['저주','dot'],o:[
  ['심연',['#221a2c','#3a2a4a','#7cff6b'],'robe','hood','#140f1a',{wiz:1,pat:16,warlock:1,orbit:1,ornate:1}],['피의 계약',['#2a0e14','#1a1418','#ff4a5a'],'robe','horns','#1a0a0e',{wiz:1,pat:16,warlock:1,spikes:1,collar:1,orbit:1,ornate:1,goathorn:1}],['망자',['#3a4038','#5a6458','#8affd8'],'robe','hood','#2a302a',{wiz:1,pat:16,warlock:1,skull:1,chain:1,orbit:1,ornate:1,bonehand:1}]]},
-{id:'summoner',n:'소환사',g:'마법',w:'sstaff',pet:1,st:[107,17,7,10],sk:['소환수 돌진','summon'],o:[
+{id:'summoner',n:'소환사',g:'마법',w:'sstaff',pet:1,st:[109,17,7,10],sk:['소환수 돌진','summon'],o:[
  ['학자 소환사',['#d9a92e','#2a2628','#8a2a1e'],'pants','wizhat',null,{pat:28,summon:1,scholar:1,hatc:'#4a3a2e',alb:'#2a2628',pet:'shoulder',petc:'#b8c4e8',legc:'#1e1c1e',w:'none'}],['어둠의 계약자',['#2a2830','#141216','#b060ff'],'pants','none','#141216',{summon:1,dark:1,pet:'dragon',petc:'#2a2430',orbit:'#b060ff',legc:'#1a1a1e',w:'none'}],['숲의 소환사',['#4f7a3e','#e8e0c4','#e07a9a'],'robe','flowercrown','#3e6a34',{wiz:1,pat:27,summon:1,nature:1,pet:'deer',petc:'#a8783e',w:'vinestaff'}]]},
-{id:'alchemist',n:'연금술사',g:'마법',w:'flask',st:[99,18,6,11],sk:['폭발 물약','dot'],o:[
+{id:'alchemist',n:'연금술사',g:'마법',w:'flask',st:[100,18,6,11],sk:['폭발 물약','dot'],o:[
  ['실험실 조끼',['#6b4a32','#ece6da','#7cd04a'],'robe','none',null,{alch:1}],['증기 연금술사',['#3a3a40','#e6dfd2','#e0902a'],'robe','goggles',null,{alch:1}],['독초 연금술사',['#3e5a32','#e8e4d4','#b06be0'],'robe','none',null,{alch:1,mask:1}]]},
-{id:'paladin',n:'성기사',g:'지원',w:'hammer',st:[129,15,12,7],sk:['신성한 일격','lifesteal'],o:[
+{id:'paladin',n:'성기사',g:'지원',w:'hammer',st:[131,15,12,7],sk:['신성한 일격','lifesteal'],o:[
  ['성전 기사',['#ece6da','#7d828c','#a3202a'],'robe','none','#e6dfd0',{tabard:1,w:'banner'}],['강철 성기사',['#b9bdc6','#7d838e','#7a1f1f'],'pants','visor','#6a1a1a',{armor:1,plume:'#7a1f1f',w:'longsword',shield:'kite'}],['태양 기사',['#d8d2c0','#a89a6a','#e0b040'],'pants','circlet','#e0a830',{armor:1,emblem:1,w:'spear'}]]},
-{id:'cleric',n:'힐러',g:'지원',w:'holystaff',st:[122,13,8,10],sk:['치유의 빛','heal'],o:[
+{id:'cleric',n:'힐러',g:'지원',w:'holystaff',st:[123,13,8,10],sk:['치유의 빛','heal'],o:[
  ['견습 사제',['#f4efe4','#2a6ab0','#d4af37'],'robe','mitre',null,{cleric:1,stole:1,bag:1,puff:1,pat:18}],['백의 수녀',['#f2f0ec','#cfcac0','#c9b48a'],'dress','ribbon',null,{cleric:1,frill:1,bow:1,w:'bigmace',pat:0}],['설원 사제',['#eeece6','#3a3430','#8a8f96'],'pants','beret','#3a3430',{cleric:1,coat:1,fur:1,boots:1,w:'silverstaff',pat:0}]]},
-{id:'bard',n:'음유시인',g:'지원',w:'none',st:[114,15,6,13],sk:['매혹의 노래','stun'],o:[
+{id:'bard',n:'음유시인',g:'지원',w:'none',st:[118,15,6,13],sk:['매혹의 노래','stun'],o:[
  ['떠돌이',['#c0392b','#f2d24a','#3a6ad2'],'pants','none',null,{bard:1,inst:'lute',pat:0,mantle:'#8a8478'}],['궁정 악사',['#5a2f8a','#f5f0dc','#d4af37'],'pants','feather','#3b1f5e',{bard:1,inst:'harp',pat:0,mantle:'#e8e0c8'}],['축제',['#e2407a','#3ab0a0','#f2d24a'],'pants','bandana',null,{bard:1,inst:'flute',pat:0}]]},
-{id:'princess',n:'공주',g:'왕족',w:'fan',st:[129,15,7,13],sk:['치명적 유혹','charm'],o:[
+{id:'princess',n:'공주',g:'왕족',w:'fan',st:[133,15,7,13],sk:['치명적 유혹','charm'],o:[
  ['데뷔탕트',['#a9c8ea','#eef4fb','#ffffff'],'dress','none',null,{rococo:1,deb:1,off:1,flowers:['#ffffff','#e6eef8','#c8d8f0'],pan:1.25}],['파스텔 로코코',['#f0b8c4','#f6eedc','#8fd0b8'],'dress','none',null,{rococo:1,flowers:['#f2c8d0','#8fd0b8','#e8d07a'],pan:1.35,gold:1}],['악녀',['#2a1a2e','#7a1a2a','#c9a440'],'dress','none',null,{rococo:1,villain:1,flowers:['#7a1a2a','#3a1a3a','#c9a440'],pan:1.85,bustle:1,gold:1}]]},
-{id:'prince',n:'왕자',g:'왕족',w:'rapier',st:[78,17,8,12],sk:['왕실 검술','crit'],o:[
+{id:'prince',n:'왕자',g:'왕족',w:'rapier',st:[80,17,8,12],sk:['왕실 검술','crit'],o:[
  ['프릴 셔츠',['#f4efe4','#141214','#c9a440'],'pants','none',null,{prince:1,pat:23,poet:1,pants:'#141214',belt:'#4a3022'}],['진홍 예복',['#a3202a','#2a1a1c','#c9a440'],'pants','none',null,{prince:1,pat:0,epaulet:1,frog:1,pelisse:'#2a1a1c',pants:'#2a1a1c',belt:'#2a1a1c',stripe:1}],['푸른 예복',['#24345e','#f2eee6','#c9a440'],'pants','circlet',null,{prince:1,pat:0,epaulet:1,aig:1,sash:'#b02a36',pants:'#f2eee6',belt:'#f2eee6'}]]},
-{id:'emperor',n:'황제',g:'왕족',w:'scepter',st:[120,16,10,8],sk:['근위대 소환','summon'],o:[
+{id:'emperor',n:'황제',g:'왕족',w:'scepter',st:[124,16,10,8],sk:['근위대 소환','summon'],o:[
  ['즉위식',['#b0242a','#f0e6d0','#d4af37'],'robe','crown','#a01e24',{emp:1,pat:21,ermine:1,mantle:1,train:1,front:1,arch:1,sword:1}],['평상 예복',['#2a3a7a','#e8e0cc','#d4af37'],'robe','crown','#1e2a5a',{emp:1,pat:19,ermine:1,front:1,lavish:1,arch:1}],['복수의 황제',['#1e1618','#5a1418','#8a6a3a'],'robe','crown','#120e10',{emp:1,pat:22,broken:1,chain:1,orbit:1,w:'darksword'}]]},
-{id:'demon',n:'마왕',g:'왕족',w:'scythe',st:[89,19,9,8],sk:['지옥불','lifesteal'],o:[
+{id:'demon',n:'마왕',g:'왕족',w:'scythe',st:[91,19,9,8],sk:['지옥불','lifesteal'],o:[
  ['어둠의 군주',['#141216','#2a262c','#c8c4bc'],'robe','hood','#0e0c10',{dm:1,halo:1,rags:1,w:'greatsword',pat:22}],['흰 망토 군주',['#3a3450','#24202e','#a3202a'],'pants','void',null,{dm:1,armor:1,spikecrown:1,cloak:'#e8e2d4',ram:1,w:'scythe'}],['불꽃 마왕',['#2a2628','#1a1618','#c0242a'],'robe','horns','#8a141a',{dm:1,orbit:'#ff7a2a',pat:0,bighorn:1,wings:1,openchest:1,chains:1,gaunt:1,lining:1,w:'gothsword'}]]},
-{id:'beggar',n:'거지',g:'주인공형',w:'walkstick',bowl:1,st:[121,15,5,12],sk:['운빨 한 방','luck'],o:[
+{id:'beggar',n:'거지',g:'주인공형',w:'walkstick',bowl:1,st:[124,15,5,12],sk:['운빨 한 방','luck'],o:[
  ['누더기',['#7a6a4e','#4a3e30','#9a8462'],'pants','ragcap',null,{beg:1,pat:24,hem:1,wraps:1,satchel:1,bowl:'spoon'}],['거적때기',['#5a4a36','#3a3026','#7a6a4e'],'robe','hood','#4a3c2c',{beg:1,pat:24,hem:1,bowl:'spoon'}],['떠돌이 거지',['#e8dcc0','#3a3c32','#2e4a32'],'pants','none',null,{beg:1,peasant:1,pat:0,bowl:'coin',w:'none'}]]},
-{id:'adventurer',n:'모험가',g:'주인공형',w:'sword',st:[91,16,8,11],sk:['용기','buff'],o:[
+{id:'adventurer',n:'모험가',g:'주인공형',w:'sword',st:[93,16,8,11],sk:['용기','buff'],o:[
  ['탐험가 치마',['#4a3224','#efe6d4','#7a5236'],'pants','none',null,{adv:1,skirt:'hilo',corset:1,susp:1,legc:'#e8d8c0'}],['풍선 바지',['#c08a2a','#efe6d4','#2a3450'],'pants','feather',null,{adv:1,skirt:'bloomer',jacket:1,susp:1,legc:'#3a3030',w:'bindle'}],['숲길 여행자',['#2e5a46','#f2ead8','#8a2a3a'],'pants','none',null,{adv:1,skirt:'hilo',corset:1,legc:'#e8d8c0',w:'bindle'}]]},
 ];
 const CLS=Object.fromEntries(CLASSES.map(c=>[c.id,c]));
@@ -367,6 +367,7 @@ const TYPES=[{n:'강철',col:'#9aa4b4'},{n:'신속',col:'#6ac46a'},{n:'비전',c
 const CTYPE={sword:0,paladin:0,emperor:0,prince:0,adventurer:0,archer:1,rogue:1,bard:1,princess:1,beggar:1,wizard:2,warlock:2,summoner:2,alchemist:2,cleric:2,demon:2};
 const AFF=1.07;const typeOf=c=>CTYPE[c&&c.cls]??0;
 const affOf=(a,b)=>{const ta=typeOf(a),tb=typeOf(b);return(ta+1)%3===tb?1:(tb+1)%3===ta?-1:0};
+const PASSIVE={rogue:'패시브 회피 반격: 기본 회피율이 높고, 공격을 피하면 단검을 던져 반격',archer:'패시브 회피 반격: 기본 회피율이 높고, 공격을 피하면 화살로 반격'};
 const typeText=c=>{const t=typeOf(c);return`속성 ${TYPES[t].n} · ${TYPES[(t+1)%3].n}에 강함 · ${TYPES[(t+2)%3].n}에 약함`};
 const FX={double:'두 번 공격',crit:'강한 한 방',heal:'체력 회복',dot:'독 데미지',stun:'상대 한 턴 멈춤',shield:'다음 피해 절반',lifesteal:'흡혈',summon:'강력한 돌진',buff:'공격력 상승',pierce:'방어 무시',charm:'유혹 시도 — 성공(60%)하면 상대가 한 턴 기절, 실패하면 약한 공격',steal:'55% 확률로 상대 스킬을 훔쳐 바로 1회 사용 + 상대의 다음 스킬 봉인 (실패하면 급소 찌르기)',luck:'동전 던지기 — 앞면이면 운빨 버프(공격력 상승) + 강한 한 방, 뒷면이면 약한 공격'};
 const HAIRS=[['short','짧은 머리'],['messy','삐죽 머리'],['bob','단발'],['long','긴 머리'],['pony','포니테일'],['twin','양갈래'],['bun','똥머리'],['bald','민머리']];
@@ -374,7 +375,7 @@ const HAIRC=['#1d1a17','#4a2f1f','#8a5a2b','#d9b25a','#ece3d0','#b7342c','#e27aa
 const SKINS=['#ffe0c8','#f5c9a6','#e0aa80','#c08a5c','#8d5a3b','#5e3b26'];
 
 function statsOf(c){const C=CLS[c.cls]||CLS.adventurer;const[h,a,d,s]=C.st;const W=c.w||1,H=c.h||1;
- return{hp:Math.round(h*(0.8+0.25*W)),atk:Math.round(a*(0.9+(H-0.85)*0.6)),def:Math.round(d+(W-1)*7),spd:Math.max(3,Math.round(s-(W-1)*7+(1.2-H)*3)),sk:C.sk[0],fx:C.sk[1]}}
+ return{hp:Math.round(h*(0.8+0.25*W)),atk:Math.round(a*(0.9+(H-0.85)*0.6)),def:Math.round(d+(W-1)*7),spd:Math.max(3,Math.round(s-(W-1)*7+(1.2-H)*3)),sk:C.sk[0],fx:C.sk[1],cls:C.id}}
 
 /* ---------- three setup ---------- */
 const cv=$('#cv');
@@ -1318,8 +1319,8 @@ function simBattle(id,A,B){const r=rng(hash32(id));const af=affOf(A,B),am=[af>0?
   if(SS.stun){SS.stun=0;ev.push({w:cur,t:'stun',hp:[...hp]});cur=o;n++;continue}
   let sk=r()<0.3;const base=me.atk*SS.bf;const e={w:cur,t:sk?'skill':'atk',sk:sk?me.sk:null,d:0,h:0,quick0:SS.q};
   if(sk&&SS.seal){SS.seal=0;sk=false;e.t='atk';e.sk=null;e.sealed=1}
-  const dg=Math.min(0.32,Math.max(0.02,0.04+(s[o].spd-me.spd)*0.022))*(sk?0.5:1);
-  const hit=(mult,pierce)=>{if(r()<dg){e.miss=true;return 0}let d=am[cur]*base*mult*(0.85+r()*0.3)-(pierce?0:s[o].def*0.55);if(!sk&&r()<0.1){d*=1.6;e.crit=true}
+  const EV=s[o].cls==='rogue'||s[o].cls==='archer';const dg=Math.min(EV?0.42:0.32,Math.max(0.02,(EV?0.07:0.04)+(s[o].spd-me.spd)*0.022))*(sk?0.5:1);
+  const hit=(mult,pierce)=>{if(r()<dg){e.miss=true;if(EV)e.ctr=1;return 0}let d=am[cur]*base*mult*(0.85+r()*0.3)-(pierce?0:s[o].def*0.55);if(!sk&&r()<0.1){d*=1.6;e.crit=true}
    d=Math.max(1,Math.round(d));if(T.sh){d=Math.ceil(d/2);T.sh=0}hp[o]-=d;e.d+=d;return d};
   const doFx=fx=>{switch(fx){
    case'double':hit(0.8);hit(0.8);break;case'crit':hit(2);break;
@@ -1332,7 +1333,8 @@ function simBattle(id,A,B){const r=rng(hash32(id));const af=affOf(A,B),am=[af>0?
    default:hit(1)}};
   if(!sk)hit(1);else doFx(me.fx);
   const qk=!e.quick0&&me.spd>s[o].spd&&hp[o]>0&&r()<Math.min(0.3,(me.spd-s[o].spd)*0.025);
-  e.hp=[...hp];ev.push(e);n++;if(qk){e.quick=1;SS.q=1}else{SS.q=0;cur=o}}
+  e.hp=[...hp];ev.push(e);n++;
+  if(e.ctr&&hp[o]>0&&hp[cur]>0){const d=Math.max(1,Math.round(am[o]*s[o].atk*st[o].bf*0.4*(0.85+r()*0.3)-me.def*0.55));hp[cur]-=d;ev.push({w:o,t:'counter',d,rng:s[o].cls,hp:[...hp]});if(hp[cur]<=0)break}if(qk){e.quick=1;SS.q=1}else{SS.q=0;cur=o}}
  const win=hp[0]<=0?1:hp[1]<=0?0:(hp[0]/s[0].hp>=hp[1]/s[1].hp?0:1);return{ev,win,max:[s[0].hp,s[1].hp],turns:n}}
 const battles=[],fought=new Set(),timers=[],floats=[],fx=[],chats=[],chatted=new Set();
 const DEFLINE=['안녕!','반가워~','오늘 날씨 좋다','배고프다…','같이 모험 갈래?','어디 가는 길이야?','과제 다 했어?','졸려…'];
@@ -1360,6 +1362,7 @@ function stepBattle(b,dt){b.t-=dt;if(b.t>0)return;const[A,B]=b.ents;
  if(!S.chars.has(A.id)||!S.chars.has(B.id)){endBattle(b);return}
  if(b.i<b.res.ev.length){const ev=b.res.ev[b.i++];const at=b.ents[ev.w],tg=b.ents[1-ev.w];const C=CLS[at.c.cls];const acc=C.o[at.c.outfit][1][2];
   const setHp=()=>{for(let k=0;k<2;k++)b.ents[k].hpEl.style.width=Math.max(0,ev.hp[k]/b.res.max[k]*100)+'%'};
+  if(ev.t==='counter'){at.atkT=0.45;floatText(at,'회피 반격!','#7ad8ff');shootProj(at,tg,ev.rng==='archer'?'arrow':'dagger',()=>{tg.hitT=0.3;floatText(tg,'-'+ev.d,'#ff5a6a');setHp()});b.t=0.9;return}
   if(ev.t==='poison'){floatText(at,'독 -'+ev.d,'#b06bff');at.hitT=0.3;setHp()}
   else if(ev.t==='stun'){floatText(at,'멈춤!','#ffd84a')}
   else{at.atkT=0.45;if(ev.sealed)floatText(at,'스킬 봉인됨!','#b8b4c8');if(ev.t==='skill'){floatText(at,ev.sk,'#ffd84a',true);if(ev.charm)later(0.12,()=>floatText(tg,ev.charm>0?'💗 유혹 성공! 기절':'유혹 실패…',ev.charm>0?'#ff8ac8':'#b8b4c8'));
@@ -1380,6 +1383,7 @@ function detect(T){const bucket=Math.floor(T/240),cb=Math.floor(T/90);const free
  for(const e of free){if((e.sitCool||0)>T)continue;let best=null,bd=1e9,join=false;for(const tb of TABLES){const occ=tb.seats.some(q=>q.occ);for(const st of tb.seats){if(st.occ)continue;const d=Math.hypot(e.x-st.x,e.z-st.z);if(d<(occ?6.5:3)&&d<bd){bd=d;best=st;join=occ}}}
   if(best&&hrand(Math.floor(T*4),e.seed^0x5eed)<(join?0.5:0.12)){best.occ=e.id;e.seat=best;e.state='sitwalk';e.spot=[best.x,best.z]}else if(best)e.sitCool=T+6}
  const tk=Math.floor(T*4);
+ for(const p of ents.values())if(p.state==='perform'&&p.aud){p.aud=p.aud.filter(o=>o.state==='audience'&&o.perfB===p);for(const o of free)if(o.state==='free'&&o!==p&&Math.hypot(o.x-p.x,o.z-p.z)<7&&hrand(tk,o.seed^0xa0d)<0.3)joinAud(p,o)}
  for(const e of free){if(e.state!=='free')continue;const cl=e.c.cls;
   if(cl==='alchemist'&&(e.brewCool||0)<T&&hrand(tk,e.seed^0xb4e)<0.025)startBrew(e,T);
   else if(cl==='bard'&&(e.perfCool||0)<T&&hrand(tk,e.seed^0xba4d)<0.02)startPerform(e,T);
@@ -1391,7 +1395,13 @@ function detect(T){const bucket=Math.floor(T/240),cb=Math.floor(T/90);const free
   if(!chatted.has(cid))startChat(cid,a,b)}}
 let duel=null;const stones=[];
 function throwStone(o,b){o.throwT=0.9;o.throwAt=b;o.atkT=0.45;later(0.22,()=>{if(!o.r||!b.r)return;const m=mesh(new THREE.DodecahedronGeometry(0.09,0),M('#8a8680'),o.x,1.1,o.z);scene.add(m);stones.push({m,ax:o.x,az:o.z,b,t:0})})}
-function stepStones(dt){for(let i=stones.length-1;i>=0;i--){const s=stones[i];s.t+=dt/0.55;const b=s.b;if(!b.r||s.t>=1){scene.remove(s.m);s.m.geometry.dispose();stones.splice(i,1);if(b.r&&s.t>=1){b.hitT=0.3;floatText(b,'아야!','#e0dcd4')}continue}
+function shootProj(a,b,kind,done){const g=new THREE.Group();
+ if(kind==='arrow'){const sh=mesh(new THREE.CylinderGeometry(0.02,0.02,0.6,4),M('#8a5a32'),0,0,0);sh.rotation.x=Math.PI/2;g.add(sh);const tip=mesh(new THREE.ConeGeometry(0.05,0.12,4),M('#c8ccd4',{shininess:60}),0,0,0.34);tip.rotation.x=Math.PI/2;g.add(tip);
+  const fl=mesh(new THREE.BoxGeometry(0.1,0.01,0.12),M('#f2eee6'),0,0,-0.26);g.add(fl)}
+ else{const bl=mesh(new THREE.ConeGeometry(0.05,0.3,4),M('#d8dce4',{shininess:80}),0,0,0.1);bl.rotation.x=Math.PI/2;g.add(bl);g.add(mesh(new THREE.BoxGeometry(0.05,0.05,0.12),M('#3a2a22'),0,0,-0.1))}
+ g.position.set(a.x,1.0,a.z);scene.add(g);stones.push({m:g,ax:a.x,az:a.z,b,t:0,proj:kind,done})}
+function stepStones(dt){for(let i=stones.length-1;i>=0;i--){const s=stones[i];s.t+=dt/(s.proj?0.35:0.55);const b=s.b;if(!b.r||s.t>=1){scene.remove(s.m);if(s.m.geometry)s.m.geometry.dispose();stones.splice(i,1);if(s.done){if(s.t>=1)s.done()}else if(b.r&&s.t>=1){b.hitT=0.3;floatText(b,'아야!','#e0dcd4')}continue}
+ if(s.proj){const k=s.t;s.m.position.set(s.ax+(b.x-s.ax)*k,1.0+Math.sin(k*Math.PI)*(s.proj==='arrow'?0.5:0.25),s.az+(b.z-s.az)*k);s.m.lookAt(b.x,0.9,b.z);if(s.proj==='dagger')s.m.rotateX(k*12);continue}
  const k=s.t;s.m.position.set(s.ax+(b.x-s.ax)*k,1.1+(0.9-1.1)*k+Math.sin(k*Math.PI)*0.8,s.az+(b.z-s.az)*k);s.m.rotation.x+=dt*12;s.m.rotation.y+=dt*9}}
 function startBrew(e,T){e.state='brew';e.spot=[e.x,e.z];e.brewUntil=T+10+hrand(Math.floor(T),e.seed)*6;
  const cx=e.x+Math.sin(e.face)*0.8,cz=e.z+Math.cos(e.face)*0.8;const C=CLS[e.c.cls].o[e.c.outfit]||CLS[e.c.cls].o[0];const liq=C[1][2];
@@ -1410,11 +1420,15 @@ function stepProps(T){for(const e of[...props]){if(!ents.has(e.id)||e.state!=='b
  b.bub.forEach((m,k)=>{const q=(T*0.9+k*0.25)%1;const a=k*1.7+Math.floor(T*0.9+k*0.25);m.position.set(Math.sin(a)*0.25,0.6+q*0.35,Math.cos(a)*0.25);m.scale.setScalar(1-q*0.7)})}}
 const NOTE_C=['#ff6a8a','#ffd24a','#6ad0ff','#8aff9a','#c08aff','#ffa04a','#ffffff'],NOTES=['♪','♫','♬','♩'];
 function noteFloat(e){const f=el('div','fl',NOTES[Math.floor(Math.random()*4)]);f.style.color=NOTE_C[Math.floor(Math.random()*NOTE_C.length)];f.style.fontSize=(20+Math.random()*14)+'px';tagsEl.append(f);floats.push({el:f,e,t:0,life:2.2,dx:(Math.random()-0.5)*70,wob:Math.random()*6})}
+function perfSlot(e,i){const a=e.perfFace+((i%4)-1.5)*0.45,rr=2.1+Math.floor(i/4)*0.85;return[e.x+Math.sin(a)*rr,e.z+Math.cos(a)*rr]}
+function slotOk(p){const d=Math.hypot(p[0],p[1]);if(d<5.2||d>15.3)return false;for(const tb of TABLES)if(Math.hypot(p[0]-tb.x,p[1]-tb.z)<1.8)return false;return Math.hypot(p[0]+7,p[1]+9.5)>1.6}
 function startPerform(e,T){e.state='perform';e.spot=[e.x,e.z];e.perfUntil=T+15+hrand(Math.floor(T),e.seed)*6;e.perfNote=T;
- const toC=Math.atan2(-e.x,-e.z);e.perfFace=Math.hypot(e.x,e.z)<7?toC+Math.PI:toC;e.face=e.perfFace;
- const aud=[...ents.values()].filter(o=>o!==e&&o.state==='free'&&o.r&&Math.hypot(o.x-e.x,o.z-e.z)<8).sort((p,q)=>Math.hypot(p.x-e.x,p.z-e.z)-Math.hypot(q.x-e.x,q.z-e.z)).slice(0,8);
- aud.forEach((o,i)=>{const a=e.perfFace+(i-(aud.length-1)/2)*0.42,rr=1.9+(i%2)*0.7;let sx=e.x+Math.sin(a)*rr,sz=e.z+Math.cos(a)*rr;const dd=Math.hypot(sx,sz);if(dd<4.8){sx*=4.8/(dd||1);sz*=4.8/(dd||1)}if(Math.hypot(sx,sz)>15.5){const k=15.5/Math.hypot(sx,sz);sx*=k;sz*=k}
-  o.state='audience';o.perfB=e;o.spot=[sx,sz]});e.aud=aud;floatText(e,'공연 시작!','#ffd24a',true)}
+ let best=e.face,bs=-1;for(let k=0;k<16;k++){const f=e.face+(k%2?1:-1)*Math.ceil(k/2)*Math.PI/8;e.perfFace=f;let ok=0;for(let i=0;i<8;i++)if(slotOk(perfSlot(e,i)))ok++;if(ok>bs){bs=ok;best=f}if(ok===8)break}
+ e.perfFace=best;e.face=best;e.slots=[];for(let i=0;i<12&&e.slots.length<8;i++){const p=perfSlot(e,i);if(slotOk(p))e.slots.push(p)}
+ e.aud=[];const cand=[...ents.values()].filter(o=>o!==e&&o.state==='free'&&o.r&&Math.hypot(o.x-e.x,o.z-e.z)<8).sort((p,q)=>Math.hypot(p.x-e.x,p.z-e.z)-Math.hypot(q.x-e.x,q.z-e.z));
+ for(const o of cand)joinAud(e,o);floatText(e,'공연 시작!','#ffd24a',true)}
+function joinAud(e,o){const used=new Set(e.aud.map(a=>a.slotI));let si=-1;for(let i=0;i<e.slots.length;i++)if(!used.has(i)){si=i;break}if(si<0)return false;
+ o.state='audience';o.perfB=e;o.slotI=si;o.spot=e.slots[si].slice();e.aud.push(o);return true}
 function endPerform(e){for(const o of e.aud||[])if(o.state==='audience'){o.state='free';o.perfB=null;o.cool=Date.now()/1000+3}e.aud=null;if(e.state==='perform'){e.state='free';e.cool=Date.now()/1000+3}e.perfCool=Date.now()/1000+60}
 function startDuel(aid,bid){const a=ents.get(aid),b=ents.get(bid);if(!a||!b)return;if(a.state!=='free'||b.state!=='free'){toast('둘 중 한 명이 지금 전투 중이에요. 잠시 뒤에 다시 신청해 주세요.');return}
  a.state=b.state='duel';a.spot=[-0.85,7.2];b.spot=[0.85,7.2];duel={a,b,id:'d-'+[aid,bid].sort().join('-')+'-'+Date.now()};cam.follow=aid;cam.dist=Math.min(cam.dist,16);toast('광장 앞으로 모이는 중…')}
@@ -1488,7 +1502,7 @@ let cardId=null;
 function openCard(id,quiet){const c=S.chars.get(id);if(!c)return;cardId=id;const k=$('#card');k.textContent='';k.hidden=false;if(!quiet)cam.follow=id;
  const C=CLS[c.cls],st=statsOf(c),[w,l]=record(id);
  const hd=el('div','hd');const tx=el('div');tx.append(el('h3',null,c.nick),el('div','sub',(c.real?c.real+' · ':'')+C.n+' · '+C.o[c.outfit][0]),el('div','sub',`${w}승 ${l}패`),el('div','sub','“'+lineOf(ents.get(id)||{id,c})+'”'));hd.append(faceEl(c),tx);k.append(hd);
- k.append(statBars(st));k.append(el('p','sub',`스킬 ${st.sk}: ${FX[st.fx]}`));k.append(el('p','sub',typeText(c)));
+ k.append(statBars(st));k.append(el('p','sub',`스킬 ${st.sk}: ${FX[st.fx]}`));k.append(el('p','sub',typeText(c)));if(PASSIVE[c.cls])k.append(el('p','sub',PASSIVE[c.cls]));
  const a=el('div','cardacts');const f=el('button',null,'따라가기');f.onclick=()=>{cam.follow=id;cam.dist=Math.min(cam.dist,14)};const x=el('button',null,'닫기');x.onclick=()=>{k.hidden=true;cam.follow=null};
  a.append(f);if(meId&&S.chars.has(meId)&&meId!==id){const d=el('button','pri','결투 신청');d.onclick=()=>startDuel(meId,id);a.append(d)}a.append(x);k.append(a);
  const ed=el('button','mini',meId===id?'내 캐릭터 · 수정하기':'수정하기');k.append(ed);
@@ -1518,7 +1532,7 @@ function pvLoop(){if(!pvOn)return;const w=pvC.clientWidth,h=pvC.clientHeight;if(
  const top=pvObj?pvObj.top:2;pvCam.position.set(0,top*0.62,top*1.9+1.2);pvCam.lookAt(0,top*0.52,0);pvR.render(pvS,pvCam);requestAnimationFrame(pvLoop)}
 let draft=null,editId=null,skinPicked=false;
 function newDraft(){return{cls:'wizard',outfit:0,hair:'short',hairColor:HAIRC[1],skin:SKINS[1],h:1,w:1,face:'',feat:Object.assign({},FEAT0),nick:'',real:''}}
-function rebuildPv(){if(pvObj)pvS.remove(pvObj.g);pvObj=buildChar(draft);pvS.add(pvObj.g);const st=statsOf(draft);const ps=$('#pvStats');ps.textContent='';ps.append(statBars(st),el('p',null,`스킬 ${st.sk}: ${FX[st.fx]}`),el('p',null,typeText(draft)),el('p',null,'속도: 상대보다 빠를수록 먼저 공격하고, 회피·연속 행동 확률이 올라가요'))}
+function rebuildPv(){if(pvObj)pvS.remove(pvObj.g);pvObj=buildChar(draft);pvS.add(pvObj.g);const st=statsOf(draft);const ps=$('#pvStats');ps.textContent='';ps.append(statBars(st),el('p',null,`스킬 ${st.sk}: ${FX[st.fx]}`),el('p',null,typeText(draft)),...(PASSIVE[draft.cls]?[el('p',null,PASSIVE[draft.cls])]:[]),el('p',null,'속도: 상대보다 빠를수록 먼저 공격하고, 회피·연속 행동 확률이 올라가요'))}
 function renderForm(){
  const cg=$('#clsGrid');cg.textContent='';let g0='';for(const c of CLASSES){if(c.g!==g0){g0=c.g;cg.append(el('div','gh',({전투:'전투형',마법:'마법형',지원:'지원형'})[g0]||g0))}const b=el('button','opt');b.setAttribute('aria-pressed',draft.cls===c.id);b.append(el('span',null,c.n),el('small',null,c.sk[0]));b.onclick=()=>{draft.cls=c.id;draft.outfit=0;renderForm();rebuildPv()};cg.append(b)}
  const og=$('#outGrid');og.textContent='';CLS[draft.cls].o.forEach((o,i)=>{const b=el('button','opt');b.setAttribute('aria-pressed',draft.outfit===i);const dots=el('span','dots');for(const c of o[1]){const d=el('i');d.style.background=c;dots.append(d)}b.append(el('span',null,o[0]),dots);b.onclick=()=>{draft.outfit=i;renderForm();rebuildPv()};og.append(b)});
