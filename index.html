@@ -391,7 +391,29 @@ addEventListener('resize',resize);
 
 const matC={};function M(col,opt){const k=col+(opt?JSON.stringify(opt):'');return matC[k]||(matC[k]=new THREE.MeshPhongMaterial(Object.assign({color:col,flatShading:true,shininess:6},opt||{})))}
 function mesh(geo,mat,x=0,y=0,z=0){const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);return m}
-const fountain={drops:[]};const TABLES=[];const SEAT_Y=0.4;
+const fountain={drops:[]};const TABLES=[];const SEAT_Y=0.4;const SWINGS=[];
+function heartGeo(w,h,d){const s=new THREE.Shape();s.moveTo(0,-0.5);s.bezierCurveTo(-0.15,-0.35,-0.7,-0.05,-0.7,0.25);s.bezierCurveTo(-0.7,0.55,-0.4,0.72,-0.2,0.64);s.bezierCurveTo(-0.08,0.59,0,0.47,0,0.4);
+ s.bezierCurveTo(0,0.47,0.08,0.59,0.2,0.64);s.bezierCurveTo(0.4,0.72,0.7,0.55,0.7,0.25);s.bezierCurveTo(0.7,-0.05,0.15,-0.35,0,-0.5);
+ const g=new THREE.ExtrudeGeometry(s,{depth:d,bevelEnabled:false,curveSegments:5});g.translate(0,0,-d/2);g.scale(w/1.4,h/1.2,1);return g}
+function buildSwing(x,z){const g=new THREE.Group(),wd=M('#5e3a26'),wd2=M('#4a2c1c'),met=M('#b8bcc4',{shininess:60});
+ for(const sx of[-1.35,1.35]){for(const sz of[0.72,-0.72]){const l=mesh(new THREE.BoxGeometry(0.12,2.72,0.12),wd,sx,1.32,sz/2);l.rotation.x=sz>0?-0.27:0.27;g.add(l)}g.add(mesh(new THREE.BoxGeometry(0.09,0.09,1.0),wd,sx,0.55,0))}
+ g.add(mesh(new THREE.BoxGeometry(3.0,0.15,0.15),wd,0,2.62,0));
+ for(const sz of[1,-1]){const rf=mesh(new THREE.BoxGeometry(3.3,0.06,0.8),wd2,0,2.84,sz*0.34);rf.rotation.x=sz*0.38;g.add(rf)}
+ // flower vines
+ const VG=['#4f8a3a','#3f7a34','#62a044'],FL=['#ff8ab8','#ffffff','#ffd84a','#c08aff','#ff5a7a'];let q=hash32(x.toFixed(2)+z.toFixed(2));const rr=()=>{q=Math.imul(q^q>>>15,2246822519)>>>0;q^=q>>>13;return(q>>>0)/4294967296};
+ for(let i=0;i<22;i++){const sx=-1.6+rr()*3.2,sz=(rr()-0.5)*0.9,y=2.95-Math.abs(sz)*0.7;g.add(mesh(new THREE.IcosahedronGeometry(0.15+rr()*0.12,0),M(VG[i%3]),sx,y+rr()*0.08,sz))}
+ for(let i=0;i<16;i++){const sx=-1.6+rr()*3.2,sz=(rr()-0.5)*0.95,y=3.06-Math.abs(sz)*0.7;g.add(mesh(new THREE.IcosahedronGeometry(0.07+rr()*0.04,0),M(FL[i%5]),sx,y+rr()*0.1,sz))}
+ for(const sx of[-1.35,1.35])for(let i=0;i<7;i++){const t=i/7,sz=0.36*(1-t)*(i%2?1:-1)*0+0.02;const y=2.6-t*2.2;g.add(mesh(new THREE.IcosahedronGeometry(0.1+rr()*0.06,0),M(VG[i%3]),sx+(rr()-0.5)*0.12,y,0.36*t*(sx>0?1:-1)*0+(rr()-0.5)*0.15+(1-t)*0.02));if(i%2)g.add(mesh(new THREE.IcosahedronGeometry(0.06,0),M(FL[(i+(sx>0?2:0))%5]),sx+0.1,y+0.05,0.08))}
+ for(let i=0;i<6;i++){const sx=-1.4+i*0.56;const len=0.3+rr()*0.4;for(let k=0;k<3;k++){const yy=2.7-k*len/3;g.add(mesh(new THREE.IcosahedronGeometry(0.07,0),M(VG[(i+k)%3]),sx,yy,0.5+k*0.02))}g.add(mesh(new THREE.IcosahedronGeometry(0.05,0),M(FL[i%5]),sx,2.7-len,0.52))}
+ // hanging seat
+ const pv=new THREE.Group();pv.position.y=2.55;g.add(pv);const L=2.1;
+ for(const sx of[-0.85,0.85]){pv.add(mesh(new THREE.CylinderGeometry(0.025,0.025,L-0.05,4),met,sx,-L/2,0.12));pv.add(mesh(new THREE.CylinderGeometry(0.025,0.025,L-0.6,4),met,sx,-(L-0.6)/2,-0.2))}
+ pv.add(mesh(new THREE.BoxGeometry(1.75,0.09,0.58),wd,0,-L,0));for(const sx of[-0.86,0.86]){pv.add(mesh(new THREE.BoxGeometry(0.08,0.06,0.5),wd,sx,-L+0.3,0.02));pv.add(mesh(new THREE.BoxGeometry(0.06,0.3,0.06),wd,sx,-L+0.15,0.22))}
+ const hb=mesh(heartGeo(1.45,1.2,0.08),M('#d4607e'),0,-L+0.62,-0.27);hb.rotation.x=-0.14;pv.add(hb);const hi=mesh(heartGeo(1.0,0.82,0.1),M('#f2a0b6'),0,-L+0.66,-0.26);hi.rotation.x=-0.14;pv.add(hi);
+ const f=Math.atan2(-x,-z);g.position.set(x,0,z);g.rotation.y=f;scene.add(g);
+ const sw={x,z,swing:null,seats:[]};const obj={pv,th:0,amp:0.02,ph:(x+z)*0.37,L};sw.swing=obj;
+ for(const lx of[-0.4,0.4]){const wx=x+Math.cos(f)*lx+Math.sin(f)*0.05,wz=z-Math.sin(f)*lx+Math.cos(f)*0.05;sw.seats.push({x:wx,z:wz,y:0.49,face:f,occ:null,t:sw})}
+ TABLES.push(sw);SWINGS.push(sw)}
 (function buildPlaza(){
  const r=rng(7);
  const g=new THREE.CircleGeometry(80,22);g.rotateX(-Math.PI/2);scene.add(mesh(g,M('#7bb26a'),0,-0.02,0));
@@ -414,13 +436,13 @@ const fountain={drops:[]};const TABLES=[];const SEAT_Y=0.4;
   const tb={x:tx,z:tz,seats:[]};for(let k=0;k<4;k++){const a=k/4*Math.PI*2+Math.PI/4;const sx=tx+Math.sin(a)*1.15,sz=tz+Math.cos(a)*1.15;const st=new THREE.Group();
    st.add(mesh(new THREE.CylinderGeometry(0.2,0.24,0.34,10),mb,0,0.17,0));st.add(mesh(new THREE.CylinderGeometry(0.26,0.24,0.06,12),mv,0,0.37,0));st.position.set(sx,0,sz);scene.add(st);
    tb.seats.push({x:sx,z:sz,a,occ:null,t:tb})}TABLES.push(tb)}
- // lamps & benches
+ // heart swings
+ for(const ang of[1.05,-1.66])buildSwing(Math.sin(ang)*13.4,Math.cos(ang)*13.4);
+ // lamps
  for(let i=0;i<8;i++){const a=i/8*Math.PI*2+Math.PI/8,x=Math.sin(a)*16.4,z=Math.cos(a)*16.4;
   scene.add(mesh(new THREE.CylinderGeometry(0.08,0.12,3,5),M('#3b3446'),x,1.5,z));
   scene.add(mesh(new THREE.OctahedronGeometry(0.32,0),M('#ffe08a',{emissive:'#a07a20'}),x,3.15,z));
-  const b=new THREE.Group();b.add(mesh(new THREE.BoxGeometry(1.8,0.1,0.5),M('#8a5a34'),0,0.45,0));b.add(mesh(new THREE.BoxGeometry(1.8,0.45,0.1),M('#8a5a34'),0,0.75,-0.22));
-  for(const s of[-0.75,0.75])b.add(mesh(new THREE.BoxGeometry(0.1,0.45,0.45),M('#3b3446'),s,0.22,0));
-  const ba=a+Math.PI/8;b.position.set(Math.sin(ba)*16.2,0,Math.cos(ba)*16.2);b.rotation.y=ba+Math.PI;scene.add(b)}
+}
  // trees
  const greens=['#4f9a4a','#3f8a52','#6aae4a','#5a9a3a'];
  for(let i=0;i<46;i++){const a=r()*Math.PI*2,d=19.5+r()*20,x=Math.sin(a)*d,z=Math.cos(a)*d;if(z<-30&&Math.abs(x)<14)continue;const s=0.8+r()*0.8;
@@ -1279,7 +1301,7 @@ function updEnt(e,dt,T){const r=e.r;if(!r)return;let tx,tz;
  pushOut(e);
  if((e.state==='battle'||e.state==='chat')&&e.foe&&e.foe.r)e.face=Math.atan2(e.foe.x-e.x,e.foe.z-e.z);
  if(e.state==='watch'&&e.watchC&&sp<0.15)e.face=Math.atan2(e.watchC[0]-e.x,e.watchC[1]-e.z);
- if(e.state==='sit'&&e.seat)e.face=Math.atan2(e.seat.t.x-e.x,e.seat.t.z-e.z);
+ if(e.state==='sit'&&e.seat)e.face=e.seat.face!=null?e.seat.face:Math.atan2(e.seat.t.x-e.x,e.seat.t.z-e.z);
  if(e.state==='brew'&&e.brew)e.face=Math.atan2(e.brew.cx-e.x,e.brew.cz-e.z);
  if(e.state==='audience'&&e.perfB&&sp<0.15)e.face=Math.atan2(e.perfB.x-e.x,e.perfB.z-e.z);
  if(e.state==='perform')e.face=e.perfFace;
@@ -1292,7 +1314,7 @@ function updEnt(e,dt,T){const r=e.r;if(!r)return;let tx,tz;
  if(r.efx)for(const f of r.efx)f.o.rotation.y+=dt*f.sp;
  if(r.wings)for(const w of r.wings)w.rotation.y=w.userData.s*(0.55+Math.sin(T*2.6+e.seed)*0.3);
  if(r.pet){r.pet.position.y=0.5+Math.sin(T*4+e.seed)*0.12;r.pet.rotation.y=Math.sin(T*2)*0.4}
- let lunge=0,y=Math.abs(Math.sin(e.phase))*0.04*Math.min(1,sp),rx=0,ry=0;
+ let lunge=0,y=Math.abs(Math.sin(e.phase))*0.04*Math.min(1,sp),rx=0,ry=0,swx=0,swz=0;
  if(e.atkT>0){lunge=Math.sin(Math.PI*(1-e.atkT/0.45))*0.4}
  let side=0;if(e.dodgeT>0){e.dodgeT-=dt;side=Math.sin(Math.PI*(1-e.dodgeT/0.4))*0.45;y+=side*0.3}
  if(e.hitT>0){e.hitT-=dt;lunge-=Math.sin(Math.PI*(1-e.hitT/0.3))*0.15;const on=e.hitT>0.05;for(const m of r.mats)m.emissive.setHex(on?0x661010:0)}
@@ -1300,7 +1322,7 @@ function updEnt(e,dt,T){const r=e.r;if(!r)return;let tx,tz;
  if(e.fallT>0){e.fallT-=dt;const k=e.fallT/2.4;rx=-(k>0.25?Math.min(1,(1-k)/0.2):k/0.25)*Math.PI/2}
  if(!e.idleT)e.idleT=0;if(sp<0.1&&e.state==='free'){r.body.position.y=Math.sin(T*2+e.seed)*0.012}
  if(e.state==='watch'&&sp<0.15){y+=Math.max(0,Math.sin(T*7+e.seed))*0.07;r.arms[1].rotation.x=-1.6+Math.sin(T*7+e.seed)*0.6}
- if(e.state==='sit'){r.legs[0].rotation.x=r.legs[1].rotation.x=-1.45;r.arms[0].rotation.x=-0.5;r.arms[1].rotation.x=-0.5;y+=SEAT_Y-(r.hipY||0.35)+0.02;
+ if(e.state==='sit'){r.legs[0].rotation.x=r.legs[1].rotation.x=-1.45;r.arms[0].rotation.x=-0.5;r.arms[1].rotation.x=-0.5;y+=(e.seat&&e.seat.y||SEAT_Y)-(r.hipY||0.35)+0.02;if(e.seat&&e.seat.t.swing){const th=e.seat.t.swing.th,L=e.seat.t.swing.L,dl=-L*Math.sin(th);swx=Math.sin(e.seat.face)*dl;swz=Math.cos(e.seat.face)*dl;y+=L*(1-Math.cos(th));rx+=th;r.arms[0].rotation.x=r.arms[1].rotation.x=-1.0}
   if(T>e.sitUntil){say(e,false);e.state='free';if(e.seat)e.seat.occ=null;e.seat=null;e.sitCool=T+40;e.cool=T+3}
   else{if(T>e.nextSay){say(e,true);e.sayOff=T+2.6;e.nextSay=T+4.5+hrand(Math.floor(T),e.seed)*3}else if(e.sayOff&&T>e.sayOff){say(e,false);e.sayOff=0}}}
  if(e.state==='brew'){const k=T*3.2;r.arms[0].rotation.x=-1.1+Math.sin(k)*0.25;r.arms[1].rotation.x=-1.1+Math.cos(k)*0.25;r.body.rotation.y=Math.sin(k)*0.12;
@@ -1308,8 +1330,10 @@ function updEnt(e,dt,T){const r=e.r;if(!r)return;let tx,tz;
  if(e.state==='perform'){const k=T*6;r.arms[0].rotation.x=-0.9+Math.sin(k)*0.15;r.arms[1].rotation.x=-0.8+Math.sin(k*2)*0.35;r.body.rotation.z=Math.sin(T*2.5)*0.08;y+=Math.abs(Math.sin(T*3))*0.04;
   if(T>e.perfNote){e.perfNote=T+0.28;noteFloat(e)}if(T>e.perfUntil)endPerform(e)}else if(r.body.rotation.z)r.body.rotation.z=0;
  if(e.state==='audience'&&sp<0.1&&Math.hypot(e.x-e.spot[0],e.z-e.spot[1])<0.15){r.legs[0].rotation.x=r.legs[1].rotation.x=-1.45;y+=-(r.hipY||0.35)+0.1;r.arms[0].rotation.x=r.arms[1].rotation.x=-0.6+(Math.sin(T*5+e.seed)>0.7?-0.5:0)}
+ if(e.state==='chat'&&e.shy&&sp<0.15){const k=T*2.2+e.seed;r.arms[1].rotation.x=-2.6+Math.sin(k*2)*0.15;r.arms[0].rotation.x=0.35;r.body.rotation.y=Math.sin(k)*0.3;rx+=0.16;y+=Math.abs(Math.sin(k*1.5))*0.02;
+  for(const m of r.mats)if(m.emissive)m.emissive.setHex(0x2a0a14)}else if(e.shyGlow!==e.shy){for(const m of r.mats)if(m.emissive)m.emissive.setHex(0)}e.shyGlow=e.state==='chat'&&e.shy;
  if(e.state==='sitwalk'&&Math.hypot(e.x-e.spot[0],e.z-e.spot[1])<0.08){e.state='sit';e.sitUntil=T+12+hrand(Math.floor(T),e.seed^7)*10;e.nextSay=T+1+hrand(Math.floor(T),e.seed^3)*2}
- r.g.position.set(e.x+Math.sin(e.head)*lunge+Math.cos(e.head)*side,y,e.z+Math.cos(e.head)*lunge-Math.sin(e.head)*side);r.g.rotation.set(rx,e.head+ry,0,'YXZ')}
+ r.g.position.set(e.x+Math.sin(e.head)*lunge+Math.cos(e.head)*side+swx,y,e.z+Math.cos(e.head)*lunge-Math.sin(e.head)*side+swz);r.g.rotation.set(rx,e.head+ry,0,'YXZ')}
 
 /* ---------- battles ---------- */
 function simBattle(id,A,B){const r=rng(hash32(id));const af=affOf(A,B),am=[af>0?AFF:af<0?1/AFF:1,af>0?1/AFF:af<0?AFF:1];const s=[statsOf(A),statsOf(B)],hp=[s[0].hp,s[1].hp],st=[{stun:0,sh:0,po:0,bf:1},{stun:0,sh:0,po:0,bf:1}],ev=[];
@@ -1340,10 +1364,12 @@ const battles=[],fought=new Set(),timers=[],floats=[],fx=[],chats=[],chatted=new
 const DEFLINE=['안녕!','반가워~','오늘 날씨 좋다','배고프다…','같이 모험 갈래?','어디 가는 길이야?','과제 다 했어?','졸려…'];
 const lineOf=e=>e.c.line||DEFLINE[hash32(e.id)%DEFLINE.length];
 function say(e,on){if(!e.bubEl)return;if(on){e.bubEl.textContent=lineOf(e);e.bubEl.classList.add('on')}else e.bubEl.classList.remove('on')}
-function startChat(id,a,b){chatted.add(id);const mx=(a.x+b.x)/2,mz=(a.z+b.z)/2;let dx=b.x-a.x,dz=b.z-a.z;const d=Math.hypot(dx,dz)||1;dx/=d;dz/=d;
- a.spot=[mx-dx*0.6,mz-dz*0.6];b.spot=[mx+dx*0.6,mz+dz*0.6];for(const[e,f]of[[a,b],[b,a]]){e.state='chat';e.foe=f}chats.push({a,b,t:0,st:0})}
-function endChat(c){for(const e of[c.a,c.b]){say(e,false);if(e.state==='chat'){e.state='free';e.foe=null;e.cool=Date.now()/1000+10}}chats.splice(chats.indexOf(c),1)}
+function startChat(id,a,b,shy){chatted.add(id);const mx=(a.x+b.x)/2,mz=(a.z+b.z)/2;let dx=b.x-a.x,dz=b.z-a.z;const d=Math.hypot(dx,dz)||1;dx/=d;dz/=d;
+ a.spot=[mx-dx*0.6,mz-dz*0.6];b.spot=[mx+dx*0.6,mz+dz*0.6];for(const[e,f]of[[a,b],[b,a]]){e.state='chat';e.foe=f;e.shy=!!shy}chats.push({a,b,t:0,st:0,shy:!!shy,ht:0,anc:{x:mx,z:mz,r:{top:1.0}}});
+ if(shy){a.spot=[mx-dx*0.5,mz-dz*0.5];b.spot=[mx+dx*0.5,mz+dz*0.5];later(0.6,()=>{floatText(a,'///','#ff8ab0');floatText(b,'///','#ff8ab0')})}}
+function endChat(c){for(const e of[c.a,c.b]){say(e,false);e.shy=false;if(e.state==='chat'){e.state='free';e.foe=null;e.cool=Date.now()/1000+10}}chats.splice(chats.indexOf(c),1)}
 function stepChat(c,dt){if(!ents.has(c.a.id)||!ents.has(c.b.id)){endChat(c);return}c.t+=dt;
+ if(c.shy){c.anc.x=(c.a.x+c.b.x)/2;c.anc.z=(c.a.z+c.b.z)/2;c.ht-=dt;if(c.t>0.8&&c.ht<=0){c.ht=0.32;heartFloat(c.anc)}if(c.t>8)endChat(c);return}
  if(c.st===0&&c.t>0.8){say(c.a,true);c.st=1}else if(c.st===1&&c.t>3.8){say(c.a,false);say(c.b,true);c.st=2}else if(c.st===2&&c.t>6.8){endChat(c)}}
 const later=(t,fn)=>timers.push({t,fn});
 function floatText(e,txt,col,big){const f=el('div','fl',txt);f.style.color=col;if(big)f.style.fontSize='28px';tagsEl.append(f);floats.push({el:f,e,t:0,life:1.3,dx:(Math.random()-0.5)*30})}
@@ -1391,6 +1417,8 @@ function detect(T){const bucket=Math.floor(T/240),cb=Math.floor(T/90);const free
  for(let i=0;i<free.length;i++)for(let j=i+1;j<free.length;j++){const a=free[i],b=free[j];if(a.state!=='free'||b.state!=='free')continue;const d=Math.hypot(a.x-b.x,a.z-b.z);if(d>2.0)continue;
   const[p,q]=[a.id,b.id].sort();const bid='b-'+p+'-'+q+'-'+bucket,cid='c-'+p+'-'+q+'-'+cb;
   if(a.state!=='free'||b.state!=='free')continue;
+  const royal=(a.c.cls==='prince'&&b.c.cls==='princess')||(a.c.cls==='princess'&&b.c.cls==='prince');
+  if(royal){if(!chatted.has(cid))startChat(cid,a,b,true);continue}
   if(!fought.has(bid)&&hrand(hash32(bid),7)<0.4){startBattle(bid,a,b,'plaza');continue}
   if(!chatted.has(cid))startChat(cid,a,b)}}
 let duel=null;const stones=[];
@@ -1419,6 +1447,8 @@ const props=[];
 function stepProps(T){for(const e of[...props]){if(!ents.has(e.id)||e.state!=='brew'){endBrew(e);continue}const b=e.brew;b.piv.rotation.y=T*3.2;
  b.bub.forEach((m,k)=>{const q=(T*0.9+k*0.25)%1;const a=k*1.7+Math.floor(T*0.9+k*0.25);m.position.set(Math.sin(a)*0.25,0.6+q*0.35,Math.cos(a)*0.25);m.scale.setScalar(1-q*0.7)})}}
 const NOTE_C=['#ff6a8a','#ffd24a','#6ad0ff','#8aff9a','#c08aff','#ffa04a','#ffffff'],NOTES=['♪','♫','♬','♩'];
+const HEART_C=['#ff8ab8','#ff6aa0','#ffb0d0','#ff4a8a'];
+function heartFloat(anc){const f=el('div','fl','♥');f.style.color=HEART_C[Math.floor(Math.random()*4)];f.style.fontSize=(18+Math.random()*16)+'px';tagsEl.append(f);floats.push({el:f,e:anc,t:0,life:2,dx:(Math.random()-0.5)*40,wob:Math.random()*6})}
 function noteFloat(e){const f=el('div','fl',NOTES[Math.floor(Math.random()*4)]);f.style.color=NOTE_C[Math.floor(Math.random()*NOTE_C.length)];f.style.fontSize=(20+Math.random()*14)+'px';tagsEl.append(f);floats.push({el:f,e,t:0,life:2.2,dx:(Math.random()-0.5)*70,wob:Math.random()*6})}
 function perfSlot(e,i){const a=e.perfFace+((i%4)-1.5)*0.45,rr=2.1+Math.floor(i/4)*0.85;return[e.x+Math.sin(a)*rr,e.z+Math.cos(a)*rr]}
 function slotOk(p){const d=Math.hypot(p[0],p[1]);if(d<5.2||d>15.3)return false;for(const tb of TABLES)if(Math.hypot(p[0]-tb.x,p[1]-tb.z)<1.8)return false;return Math.hypot(p[0]+7,p[1]+9.5)>1.6}
@@ -1459,7 +1489,7 @@ function frame(now){const dt=Math.min(0.05,(now-last)/1000);last=now;const T=Dat
  detT-=dt;if(detT<=0){detect(T);detT=0.25}
  for(const b of[...battles])stepBattle(b,dt);
  for(const c of[...chats])stepChat(c,dt);
- stepStones(dt);stepProps(T);for(const e of ents.values())if(e.state==='audience'&&(!e.perfB||!ents.has(e.perfB.id)||e.perfB.state!=='perform')){e.state='free';e.perfB=null}
+ stepStones(dt);stepProps(T);for(const sw of SWINGS){const o=sw.swing;const occ=sw.seats.some(q=>q.occ&&ents.has(q.occ)&&ents.get(q.occ).state==='sit');o.amp+=((occ?0.16:0.025)-o.amp)*Math.min(1,dt*0.8);o.th=Math.sin(T*1.7+o.ph)*o.amp;o.pv.rotation.x=o.th}for(const e of ents.values())if(e.state==='audience'&&(!e.perfB||!ents.has(e.perfB.id)||e.perfB.state!=='perform')){e.state='free';e.perfB=null}
  for(let i=timers.length-1;i>=0;i--){timers[i].t-=dt;if(timers[i].t<=0){const f=timers[i].fn;timers.splice(i,1);f()}}
  for(let i=fx.length-1;i>=0;i--){const f=fx[i];f.t+=dt;f.m.scale.setScalar(1+f.t*6);f.m.material.opacity=Math.max(0,1-f.t/0.5);if(f.t>0.5){scene.remove(f.m);f.m.geometry.dispose();f.m.material.dispose();fx.splice(i,1)}}
  fountain.orb.rotation.y+=dt;fountain.orb.position.y=2.85+Math.sin(T*2)*0.08;
