@@ -1850,6 +1850,7 @@ function enterHome(id){const c=S.chars.get(id);if(!c||HOME)return;const den=c.cl
   HOME={id,den,c,t,R,res:[],fl:[],dust:[],camSave:{yaw:cam.yaw,pitch:cam.pitch,dist:cam.dist,tx:cam.tx,tz:cam.tz,follow:cam.follow}};HOME.res=list.map(x=>mkRes(x,R));
   cam.follow=null;cam.tx=0;cam.tz=0.5;cam.dist=13;cam.pitch=0.75;cam.yaw=T2.flip?-0.6:0.6;document.body.classList.add('inhome');$('#card').hidden=true;
   $('#homeName').textContent=den?'거지 소굴':`${c.nick}의 집`;$('#homeSub').textContent=den?`${t.n} · 거지 ${list.length}명이 함께 살아요`:`${t.n} · ${CLS[c.cls].n}`;$('#homeBar').hidden=false})}
+function fade(fn){const f=$('#fade');f.classList.add('on');setTimeout(()=>{try{fn()}finally{setTimeout(()=>f.classList.remove('on'),60)}},380)}
 function clearHome(H){hsc.remove(H.R.g);for(const q of H.res){hsc.remove(q.r.g);q.tag.remove()}for(const f of H.fl)f.el.remove();for(const d of H.dust)hsc.remove(d.m);disposeG(H.R.g)}
 function leaveHome(){if(!HOME)return;fade(()=>{const H=HOME;HOME=null;clearHome(H);Object.assign(cam,H.camSave);document.body.classList.remove('inhome');$('#homeBar').hidden=true})}
 function homeFloat(q,txt,col,big){const f=el('div','fl',txt);f.style.color=col;if(big)f.style.fontSize='26px';$('#homeTags').append(f);HOME.fl.push({el:f,q,t:0,dx:(Math.random()-0.5)*50})}
