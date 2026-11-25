@@ -58,6 +58,8 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .acts button{box-shadow:0 4px 0 rgba(27,22,48,.18)}
 #panel{position:fixed;right:10px;top:76px;bottom:10px;width:310px;background:var(--panel);border-radius:16px;display:flex;flex-direction:column;box-shadow:0 6px 0 rgba(27,22,48,.18);overflow:hidden}
 #panel.hide{display:none}
+#panel.fold{bottom:auto!important;height:auto!important}#panel.fold .list{display:none}
+.tabs button[aria-selected=true]::after{content:' ▴';font-size:11px;color:var(--mute)}#panel.fold .tabs button[aria-selected=true]::after{content:' ▾'}#panel.fold .tabs{border-bottom:0}
 .tabs{display:flex;border-bottom:1px solid var(--line)}
 .tabs button{flex:1;border:0;border-radius:0;background:none;color:var(--mute)}
 .tabs button[aria-selected=true]{color:var(--ink);box-shadow:inset 0 -3px 0 var(--acc)}
@@ -443,6 +445,24 @@ function buildSwing(x,z){const g=new THREE.Group(),wd=M('#5e3a26'),wd2=M('#4a2c1
   scene.add(mesh(new THREE.CylinderGeometry(0.08,0.12,3,5),M('#3b3446'),x,1.5,z));
   scene.add(mesh(new THREE.OctahedronGeometry(0.32,0),M('#ffe08a',{emissive:'#a07a20'}),x,3.15,z));
 }
+ // rim decor: hedges, arches, urns
+ {const hg=M('#4f8a3a'),hg2=M('#3f7a34'),st=M('#e6e0d4',{shininess:20}),st2=M('#cfc8b8'),FLC=['#ff8ab8','#ffffff','#ffd84a','#c08aff','#ff6a6a'],R=16.85;
+  const ARCH=[0,Math.PI/2,Math.PI,-Math.PI/2],URN=[Math.PI/4,3*Math.PI/4,-Math.PI/4,-3*Math.PI/4];const near=(a,L,w)=>L.some(b=>Math.abs(Math.atan2(Math.sin(a-b),Math.cos(a-b)))<w);
+  const segN=90;for(let i=0;i<segN;i++){const a=(i+0.5)/segN*Math.PI*2;if(near(a,ARCH,0.075))continue;const x=Math.sin(a)*R,z=Math.cos(a)*R;
+   const h=mesh(new THREE.BoxGeometry(1.2,0.5+(i%3)*0.04,0.55),i%2?hg:hg2,x,0.27,z);h.rotation.y=a;scene.add(h);
+   if(r()<0.7){const f=mesh(new THREE.IcosahedronGeometry(0.07+r()*0.04,0),M(FLC[Math.floor(r()*5)]),x+(r()-0.5)*0.8*Math.cos(a),0.56,z-(r()-0.5)*0.8*Math.sin(a));scene.add(f)}}
+  for(const a of ARCH){const G=new THREE.Group();G.position.set(Math.sin(a)*R,0,Math.cos(a)*R);G.rotation.y=a;
+   for(const sx of[-1.15,1.15]){G.add(mesh(new THREE.BoxGeometry(0.5,0.25,0.5),st2,sx,0.12,0));G.add(mesh(new THREE.CylinderGeometry(0.17,0.2,2.3,8),st,sx,1.38,0));G.add(mesh(new THREE.BoxGeometry(0.45,0.18,0.45),st2,sx,2.6,0))}
+   for(let k=0;k<=8;k++){const t=k/8*Math.PI,x=-Math.cos(t)*1.15,y=2.65+Math.sin(t)*0.75;const b=mesh(new THREE.BoxGeometry(0.34,0.2,0.38),st,x,y,0);b.rotation.z=-Math.cos(t)*0.9*(k===0||k===8?0:1);G.add(b);
+    G.add(mesh(new THREE.IcosahedronGeometry(0.15+r()*0.07,0),M(k%2?'#4f8a3a':'#62a044'),x+(r()-0.5)*0.15,y+0.15,(r()-0.5)*0.3));if(k%2===0)G.add(mesh(new THREE.IcosahedronGeometry(0.07,0),M(FLC[k%5]),x,y+0.22,0.18))}
+   for(const sx of[-1.15,1.15])for(let k=0;k<4;k++){G.add(mesh(new THREE.IcosahedronGeometry(0.11,0),M(k%2?'#4f8a3a':'#62a044'),sx+(r()-0.5)*0.25,2.4-k*0.55,0.2));if(k%2)G.add(mesh(new THREE.IcosahedronGeometry(0.06,0),M(FLC[(k+2)%5]),sx,2.3-k*0.55,0.28))}
+   scene.add(G)}
+  for(const a of URN){const G=new THREE.Group();G.position.set(Math.sin(a)*(R-0.9),0,Math.cos(a)*(R-0.9));
+   G.add(mesh(new THREE.BoxGeometry(0.8,0.5,0.8),st2,0,0.25,0));G.add(mesh(new THREE.CylinderGeometry(0.18,0.3,0.4,8),st,0,0.7,0));G.add(mesh(new THREE.CylinderGeometry(0.55,0.25,0.55,10),st,0,1.15,0));G.add(mesh(new THREE.CylinderGeometry(0.58,0.58,0.08,10),st2,0,1.45,0));
+   for(let k=0;k<9;k++){const aa=k/9*Math.PI*2,rr=k%3?0.35:0.12;G.add(mesh(new THREE.IcosahedronGeometry(0.17,0),M(k%2?'#4f8a3a':'#62a044'),Math.sin(aa)*rr,1.6+(k%3?0:0.15),Math.cos(aa)*rr))}
+   for(let k=0;k<7;k++){const aa=k/7*Math.PI*2+0.3;G.add(mesh(new THREE.IcosahedronGeometry(0.09,0),M(FLC[k%5]),Math.sin(aa)*0.38,1.72+(k%2)*0.1,Math.cos(aa)*0.38))}
+   for(let k=0;k<4;k++){const aa=k/4*Math.PI*2+0.6;G.add(mesh(new THREE.IcosahedronGeometry(0.08,0),M('#4f8a3a'),Math.sin(aa)*0.58,1.3-0.1*k%2,Math.cos(aa)*0.58))}
+   scene.add(G)}}
  // trees
  const greens=['#4f9a4a','#3f8a52','#6aae4a','#5a9a3a'];
  for(let i=0;i<46;i++){const a=r()*Math.PI*2,d=19.5+r()*20,x=Math.sin(a)*d,z=Math.cos(a)*d;if(z<-30&&Math.abs(x)<14)continue;const s=0.8+r()*0.8;
@@ -1428,7 +1448,7 @@ function shootProj(a,b,kind,done){const g=new THREE.Group();
   const fl=mesh(new THREE.BoxGeometry(0.1,0.01,0.12),M('#f2eee6'),0,0,-0.26);g.add(fl)}
  else{const bl=mesh(new THREE.ConeGeometry(0.05,0.3,4),M('#d8dce4',{shininess:80}),0,0,0.1);bl.rotation.x=Math.PI/2;g.add(bl);g.add(mesh(new THREE.BoxGeometry(0.05,0.05,0.12),M('#3a2a22'),0,0,-0.1))}
  g.position.set(a.x,1.0,a.z);scene.add(g);stones.push({m:g,ax:a.x,az:a.z,b,t:0,proj:kind,done})}
-function stepStones(dt){for(let i=stones.length-1;i>=0;i--){const s=stones[i];s.t+=dt/(s.proj?0.35:0.55);const b=s.b;if(!b.r||s.t>=1){scene.remove(s.m);if(s.m.geometry)s.m.geometry.dispose();stones.splice(i,1);if(s.done){if(s.t>=1)s.done()}else if(b.r&&s.t>=1){b.hitT=0.3;floatText(b,'아야!','#e0dcd4')}continue}
+function stepStones(dt){for(let i=stones.length-1;i>=0;i--){const s=stones[i];s.t+=dt/(s.proj?0.35:0.55);const b=s.b;if(!b.r||s.t>=1){scene.remove(s.m);disposeG(s.m);stones.splice(i,1);if(s.done){if(s.t>=1)s.done()}else if(b.r&&s.t>=1){b.hitT=0.3;floatText(b,'아야!','#e0dcd4')}continue}
  if(s.proj){const k=s.t;s.m.position.set(s.ax+(b.x-s.ax)*k,1.0+Math.sin(k*Math.PI)*(s.proj==='arrow'?0.5:0.25),s.az+(b.z-s.az)*k);s.m.lookAt(b.x,0.9,b.z);if(s.proj==='dagger')s.m.rotateX(k*12);continue}
  const k=s.t;s.m.position.set(s.ax+(b.x-s.ax)*k,1.1+(0.9-1.1)*k+Math.sin(k*Math.PI)*0.8,s.az+(b.z-s.az)*k);s.m.rotation.x+=dt*12;s.m.rotation.y+=dt*9}}
 function startBrew(e,T){e.state='brew';e.spot=[e.x,e.z];e.brewUntil=T+10+hrand(Math.floor(T),e.seed)*6;
@@ -1442,7 +1462,8 @@ function startBrew(e,T){e.state='brew';e.spot=[e.x,e.z];e.brewUntil=T+10+hrand(M
  ld.add(mesh(new THREE.CylinderGeometry(0.035,0.04,1.5,5),wood,0,0.55,0));const bw=mesh(new THREE.SphereGeometry(0.14,6,4,0,Math.PI*2,Math.PI/2,Math.PI/2),M('#a8a29a',{shininess:60}),0,-0.18,0);bw.material.side=THREE.DoubleSide;ld.add(bw);
  ld.position.x=0.2;ld.rotation.z=0.35;piv.add(ld);g.add(piv);g.position.set(cx,0,cz);scene.add(g);
  e.brew={g,piv,bub,cx,cz,seed:e.seed};props.push(e)}
-function endBrew(e){if(e.brew){scene.remove(e.brew.g);e.brew=null}const i=props.indexOf(e);if(i>=0)props.splice(i,1);if(e.state==='brew'){e.state='free';e.cool=Date.now()/1000+3}e.brewCool=Date.now()/1000+50}
+function disposeG(o){o.traverse(m=>{if(m.geometry)m.geometry.dispose()})}
+function endBrew(e){if(e.brew){scene.remove(e.brew.g);disposeG(e.brew.g);e.brew=null}const i=props.indexOf(e);if(i>=0)props.splice(i,1);if(e.state==='brew'){e.state='free';e.cool=Date.now()/1000+3}e.brewCool=Date.now()/1000+50}
 const props=[];
 function stepProps(T){for(const e of[...props]){if(!ents.has(e.id)||e.state!=='brew'){endBrew(e);continue}const b=e.brew;b.piv.rotation.y=T*3.2;
  b.bub.forEach((m,k)=>{const q=(T*0.9+k*0.25)%1;const a=k*1.7+Math.floor(T*0.9+k*0.25);m.position.set(Math.sin(a)*0.25,0.6+q*0.35,Math.cos(a)*0.25);m.scale.setScalar(1-q*0.7)})}}
@@ -1541,7 +1562,8 @@ function openCard(id,quiet){const c=S.chars.get(id);if(!c)return;cardId=id;const
   const go=()=>{const v=ip.value.trim();if(!(c.pin&&/^\d{4}$/.test(v)&&String(hash32(c.id+':'+v))===c.pin)){msg.textContent='PIN이 맞지 않아요';ip.select();return}
    meId=id;ls.set('plaza-me-'+S.code,id);refreshAll();openCreator(S.chars.get(id))};ok.onclick=go;ip.onkeydown=e=>{if(e.key==='Enter')go()}}}
 function statBars(st){const g=el('div','bars');for(const[n,v,m]of[['체력',st.hp,170],['공격',st.atk,26],['방어',st.def,20],['속도',st.spd,20]]){const s=el('s');const sp=el('span');sp.style.width=clamp(v/m*100,4,100)+'%';s.append(sp);g.append(el('em',null,n),s,el('b',null,String(v)))}return g}
-$('#tRoster').onclick=()=>tab(0);$('#tLog').onclick=()=>tab(1);
+const tabClick=i=>{const p=$('#panel'),cur=$('#tLog').getAttribute('aria-selected')==='true'?1:0;if(i===cur&&!p.classList.contains('fold')){p.classList.add('fold');ls.set('panel-fold',1)}else{p.classList.remove('fold');ls.set('panel-fold',0);tab(i)}};
+$('#tRoster').onclick=()=>tabClick(0);$('#tLog').onclick=()=>tabClick(1);if(ls.get('panel-fold'))$('#panel').classList.add('fold');
 function tab(i){$('#tRoster').setAttribute('aria-selected',i===0);$('#tLog').setAttribute('aria-selected',i===1);$('#roster').hidden=i!==0;$('#logs').hidden=i!==1}
 $('#bPanel').onclick=()=>{const p=$('#panel');p.classList.toggle('hide');$('#bPanel').setAttribute('aria-expanded',!p.classList.contains('hide'))};
 if(innerWidth<700){$('#panel').classList.add('hide');$('#bPanel').setAttribute('aria-expanded','false')}
