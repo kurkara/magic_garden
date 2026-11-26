@@ -374,7 +374,7 @@ const CLASSES=[
 {id:'alchemist',n:'연금술사',g:'마법',w:'flask',st:[100,18,6,11],sk:['폭발 물약','dot'],o:[
  ['현자의 돌 연금술사',['#6b4a32','#ece6da','#7cd04a'],'robe','none',null,{alch:1}],['증기 연금술사',['#3a3a40','#e6dfd2','#e0902a'],'robe','goggles',null,{alch:1}],['독초 연금술사',['#3e5a32','#e8e4d4','#b06be0'],'robe','none',null,{alch:1,mask:1}]]},
 {id:'paladin',n:'성기사',g:'지원',w:'hammer',st:[131,15,12,7],sk:['신성한 일격','lifesteal'],o:[
- ['성전 기사',['#ece6da','#7d828c','#a3202a'],'robe','none','#e6dfd0',{tabard:1,w:'banner'}],['강철의 성기사단장',['#b9bdc6','#7d838e','#7a1f1f'],'pants','visor','#6a1a1a',{armor:1,plume:'#7a1f1f',w:'longsword',shield:'kite'}],['태양 기사',['#d8d2c0','#a89a6a','#e0b040'],'pants','circlet','#e0a830',{armor:1,emblem:1,w:'spear'}]]},
+ ['성전 기사',['#ece6da','#7d828c','#a3202a'],'robe','none','#e6dfd0',{tabard:1,w:'banner'}],['강철의 성기사단장',['#b9bdc6','#7d838e','#7a1f1f'],'pants','greathelm','#6a1a1a',{armor:1,w:'longsword',shield:'kite'}],['태양 기사',['#d8d2c0','#a89a6a','#e0b040'],'pants','circlet','#e0a830',{armor:1,emblem:1,w:'spear'}]]},
 {id:'cleric',n:'힐러',g:'지원',w:'holystaff',st:[123,13,8,10],sk:['치유의 빛','heal'],o:[
  ['견습 사제',['#f4efe4','#2a6ab0','#d4af37'],'robe','mitre',null,{cleric:1,stole:1,bag:1,puff:1,pat:18}],['백의 수녀',['#f2f0ec','#cfcac0','#c9b48a'],'dress','ribbon',null,{cleric:1,frill:1,bow:1,w:'bigmace',pat:0}],['설원 사제',['#eeece6','#3a3430','#8a8f96'],'pants','beret','#3a3430',{cleric:1,coat:1,fur:1,boots:1,w:'silverstaff',pat:0}]]},
 {id:'bard',n:'음유시인',g:'지원',w:'none',st:[118,15,6,13],sk:['매혹의 노래','stun'],o:[
@@ -1004,7 +1004,7 @@ function buildChar(c){
  const hg=new THREE.Group();hg.position.y=headY;body.add(hg);
  const fm=new THREE.MeshLambertMaterial({map:c.face?faceTex(c.face):cartoonTex(skin,c.feat)});mats.push(fm);
  const sm=mt(skin);hg.add(new THREE.Mesh(headGeo(),[sm,fm]));
- if(!(head==='hood'||head==='helm'||head==='visor'||head==='void'||head==='shawlhat'||head==='sunhat')){for(const s of[-1,1]){if(X&&X.elf){const e=new THREE.Mesh(new THREE.ConeGeometry(0.075,0.36,4),sm);e.scale.z=0.45;e.rotation.z=-s*1.12;e.rotation.y=s*0.25;e.position.set(s*0.58,0.04,-0.01);hg.add(e);const b2=new THREE.Mesh(new THREE.IcosahedronGeometry(0.08,0),sm);b2.scale.set(0.55,0.9,0.8);b2.position.set(s*0.45,-0.02,0.01);hg.add(b2);continue}const e=new THREE.Mesh(new THREE.IcosahedronGeometry(0.1,0),sm);e.scale.set(0.55,1,0.9);e.position.set(s*0.44,-0.03,0.02);hg.add(e)}
+ if(!(head==='hood'||head==='helm'||head==='visor'||head==='greathelm'||head==='void'||head==='shawlhat'||head==='sunhat')){for(const s of[-1,1]){if(X&&X.elf){const e=new THREE.Mesh(new THREE.ConeGeometry(0.075,0.36,4),sm);e.scale.z=0.45;e.rotation.z=-s*1.12;e.rotation.y=s*0.25;e.position.set(s*0.58,0.04,-0.01);hg.add(e);const b2=new THREE.Mesh(new THREE.IcosahedronGeometry(0.08,0),sm);b2.scale.set(0.55,0.9,0.8);b2.position.set(s*0.45,-0.02,0.01);hg.add(b2);continue}const e=new THREE.Mesh(new THREE.IcosahedronGeometry(0.1,0),sm);e.scale.set(0.55,1,0.9);e.position.set(s*0.44,-0.03,0.02);hg.add(e)}
   buildHair(hg,c.hair||'short',c.hairColor||HAIRC[1],mt)}
  if(RC){const hc=c.hairColor||HAIRC[1];const u1=new THREE.Mesh(new THREE.IcosahedronGeometry(0.3,1),mt(hc));u1.scale.set(1,1.15,0.95);u1.position.set(0,0.58,-0.05);hg.add(u1);
   const u2=new THREE.Mesh(new THREE.IcosahedronGeometry(0.19,1),mt(hc));u2.position.set(0,0.9,-0.06);hg.add(u2);
@@ -1105,6 +1105,17 @@ function buildGear(hg,head,[main,sub,acc],cape,mt,cid,metal,A,hatMat){
  const ring=(r,h,y,col,open=true,seg=10)=>{const o=add(new THREE.CylinderGeometry(r,r,h,seg,1,open),col,0,y,0);o.scale.z=0.92;return o};
  if(head==='hood'){add(shellGeo('hood',1.05,(nx,ny,nz)=>Math.min(ny+0.8,Math.max(tAng(nx,nz)-0.3,ny-0.55))),cape||main);const p=add(new THREE.ConeGeometry(0.14,0.34,5),cape||main,0,0.22,-0.5);p.rotation.x=-1.9}
  if(head==='helm'){add(shellGeo('helm',1.06,(nx,ny,nz)=>Math.min(ny+0.45,Math.max(tAng(nx,nz)-0.27,ny-0.5))),sub);add(roundBox(0.09,0.16,0.72,0.04),acc,0,0.47,0);if(cid==='knight'){const p=add(new THREE.ConeGeometry(0.1,0.45,5),acc,0,0.55,-0.32);p.rotation.x=-0.7}}
+ if(head==='greathelm'){const wc=main||'#d8dce2',st=M(wc,{shininess:90,specular:0x9a9ea6}),dk='#0e0f12',rv='#f2f4f6',rc='#a3202a',gw='#e8c860',R=0.49,ZS=0.96,fz=x=>Math.sqrt(Math.max(0,R*R-x*x))*ZS;
+  const sh=new THREE.Mesh(new THREE.CylinderGeometry(R,R*1.02,0.72,20),st);sh.scale.z=ZS;sh.position.y=-0.09;hg.add(sh);const dm=new THREE.Mesh(new THREE.SphereGeometry(R,20,10,0,Math.PI*2,0,Math.PI/2),st);dm.scale.set(1,0.62,ZS);dm.position.y=0.27;hg.add(dm);
+  const ridge=new THREE.Mesh(new THREE.TorusGeometry(R*0.98,0.03,4,16,Math.PI),st);ridge.rotation.y=Math.PI/2;ridge.scale.y=0.64;ridge.position.y=0.27;hg.add(ridge);
+  const lip=new THREE.Mesh(new THREE.TorusGeometry(R*1.02,0.02,4,20),M(rv,{shininess:80}));lip.rotation.x=Math.PI/2;lip.scale.y=ZS;lip.position.y=-0.44;hg.add(lip);
+  for(const sx of[-1,1]){const fp=add(roundBox(0.3,0.58,0.05,0.02),wc,sx*0.13,-0.12,fz(0.13)+0.03);fp.rotation.y=sx*0.42;const sl=add(roundBox(0.26,0.045,0.03,0.01),dk,sx*0.14,0.13,fz(0.14)+0.06);sl.rotation.y=sx*0.42;
+   for(let k=0;k<4;k++){const x=sx*(0.06+k*0.055);const v=add(roundBox(0.018,0.2,0.02,0.006),dk,x,-0.14,fz(x)+0.06+(0.08-k*0.022));v.rotation.y=sx*0.42}}
+  const cz=fz(0)+0.09;add(roundBox(0.05,0.66,0.04,0.015),rc,0,-0.07,cz);add(roundBox(0.36,0.05,0.03,0.012),rc,0,0.2,cz-0.03);for(const yy of[0.2,-0.38])add(new THREE.SphereGeometry(0.018,5,4),rv,0,yy,cz+0.02);
+  for(let i=0;i<10;i++){const a=i/10*Math.PI*2;if(Math.abs(Math.sin(a))<0.3&&Math.cos(a)>0)continue;add(new THREE.SphereGeometry(0.016,5,4),rv,Math.sin(a)*(R+0.012),-0.38,Math.cos(a)*(R+0.012)*ZS)}
+  for(const sx of[-1,1]){const W=new THREE.Group();W.position.set(sx*0.44,0.24,-0.06);W.rotation.set(-0.35,sx*0.25,-sx*0.35);hg.add(W);
+   for(let k=0;k<5;k++){const L=0.2+k*0.05;const f=new THREE.Mesh(roundBox(0.045,L,0.02,0.01),mt(gw));f.position.set(sx*0.02*k,L/2,-k*0.035);f.rotation.z=-sx*(0.15-k*0.1);f.rotation.x=-k*0.12;W.add(f)}
+   const b=new THREE.Mesh(new THREE.SphereGeometry(0.04,6,4),mt(gw));W.add(b)}}
  if(head==='visor'){const m=metal||mt;const sh=new THREE.Mesh(shellGeo('visor',1.06,(nx,ny)=>ny+0.66),m(main));hg.add(sh);
   for(let i=0;i<6;i++){const y=-0.2+i*0.06,z=0.44*Math.sqrt(Math.max(0,1-(y/0.47)**2))+0.012;const sl=add(roundBox(0.42-Math.abs(y+0.05)*0.5,0.022,0.02,0.008),'#14161b',0,y,z)}
   add(roundBox(0.6,0.035,0.02,0.01),'#14161b',0,0.17,0.405);
@@ -2644,7 +2655,7 @@ function homeRoom(t){const g=G();const RH=t.h||3.6,RW=t.rw||5,RD=t.rd||4;
  for(const[x,y,z,lc,li,ld]of t.lights||[]){const L=new THREE.PointLight(lc||PAL.glow||'#ff3040',li||0.9,ld||9,1.6);L.position.set(x,y,z);g.add(L)}hsc.children[0].intensity=t.amb||0.72;hsc.children[1].intensity=t.dir!=null?t.dir:0.62;
  if(t.starsky){const n=500,pos=new Float32Array(n*3);for(let i=0;i<n;i++){const u=Math.random()*2-1,a=Math.random()*Math.PI*2,r=55,yy=Math.abs(u)*0.9+0.05;const h=Math.sqrt(1-yy*yy);pos[i*3]=Math.cos(a)*h*r;pos[i*3+1]=yy*r-8;pos[i*3+2]=Math.sin(a)*h*r}
   const pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(pos,3));g.add(new THREE.Points(pg,new THREE.PointsMaterial({color:'#fff6d0',size:0.45,sizeAttenuation:true})))}
- const spin=[],drift=[],pulse=[],wind=[];g.traverse(m=>{if(m.userData.wind||m.userData.flap||m.userData.nod)wind.push(m);if(m.userData.spin||m.userData.spin2||m.userData.spinz)spin.push(m);if(m.userData.drift)drift.push(m);if(m.userData.pulse)pulse.push(m)});return{g,W,foot,spin,drift,pulse,wind,rw:RW,rd:RD}}
+ const spin=[],drift=[],pulse=[],wind=[];g.traverse(m=>{if(m.userData.wind||m.userData.flap||m.userData.nod)wind.push(m);if(m.userData.spin||m.userData.spin2||m.userData.spinz)spin.push(m);if(m.userData.drift)drift.push(m);if(m.userData.pulse)pulse.push(m)});return{g,W,foot,spin,drift,pulse,wind,rw:RW,rd:RD,bal:t.balcony||null}}
 function goldPanels(wg,w,H,gap){const gd=PAL.gd,z=0.11;const fr=(cx,cy,fw,fh)=>{if(gap&&Math.abs(cx)<gap/2+fw/2+0.05)return;wg.add(bx(fw,0.05,0.03,gd,cx,cy+fh/2,z));wg.add(bx(fw,0.05,0.03,gd,cx,cy-fh/2,z));wg.add(bx(0.05,fh,0.03,gd,cx-fw/2,cy,z));wg.add(bx(0.05,fh,0.03,gd,cx+fw/2,cy,z));wg.add(ico(0.06,gd,cx,cy+fh/2+0.05,z))};
  const n=Math.floor(w/1.7);for(let i=0;i<n;i++){const cx=-w/2+(i+0.5)*w/n;fr(cx,0.55,w/n-0.45,0.6);fr(cx,(1.3+H-0.45)/2,w/n-0.55,H-0.45-1.4)}
  if(!gap){wg.add(bx(w,0.06,0.04,gd,0,1.05,z));wg.add(bx(w,0.14,0.08,PAL.wh,0,0.07,0.12))}else for(const sx of[-1,1]){const sw=(w-gap)/2;wg.add(bx(sw,0.06,0.04,gd,sx*(gap/2+sw/2),1.05,z));wg.add(bx(sw,0.14,0.08,PAL.wh,sx*(gap/2+sw/2),0.07,0.12))}
@@ -2736,7 +2747,7 @@ function stepHome(dt,T){const H=HOME;if(!H)return;if(!S.chars.has(H.id)){leaveHo
  for(const m of H.R.pulse||[]){const u=m.userData.pulse;m.material.opacity=u.b+Math.sin(T*u.sp)*u.a}
  for(const m of H.R.drift||[]){const u=m.userData;m.position.y=u.by+Math.sin(T*u.sp+u.ph)*u.amp;if(u.rot)m.rotation.y+=dt*u.rot}
  for(const m of H.R.spin){if(m.userData.spinz){m.rotation.z+=dt*m.userData.spinz;continue}if(m.userData.spin2){m.rotation.z=Math.sin(T*0.6)*0.4;continue}m.rotation.y+=dt*(m.userData.spd||1);if(!m.userData.spd)m.position.y+=Math.sin(T*2)*0.002}
- const cx=camera.position.x,cz=camera.position.z;const rw=H.R.rw||RW,rd=H.R.rd||RD;H.R.W.front.visible=cz<rd+0.5;H.R.W.back.visible=cz>-rd-0.5;H.R.W.left.visible=cx>-rw-0.5;H.R.W.right.visible=cx<rw+0.5}
+ const cx=camera.position.x,cz=camera.position.z;const rw=H.R.rw||RW,rd=H.R.rd||RD;H.R.W.front.visible=cz<rd+0.5;H.R.W.back.visible=cz>-rd-0.5;H.R.W.left.visible=cx>-rw-0.5;H.R.W.right.visible=cx<rw+0.5;if(H.R.bal&&H.R.W[H.R.bal])H.R.W[H.R.bal].visible=true}
 
 /* ---------- loop ---------- */
 const v3=new THREE.Vector3();let last=performance.now(),detT=0;
