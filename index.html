@@ -109,10 +109,10 @@ button.mini{min-height:32px;padding:0 10px;font-size:12px;font-weight:600;color:
 .sh-h{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line)}
 .sheet:not(.big) .sh-h{padding:0 0 12px;margin-bottom:12px}
 .sh-h h2{margin:0;font:28px/1.1 Jua,sans-serif;font-weight:400}
-.cgrid{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);flex:1;min-height:0}
-.prev{background:linear-gradient(#bfe3f3,#e9f6d9);position:relative;display:flex;flex-direction:column}
+.cgrid{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);grid-template-rows:minmax(0,1fr);flex:1;min-height:0}
+.prev{background:linear-gradient(#bfe3f3,#e9f6d9);position:relative;display:flex;flex-direction:column;min-height:0;overflow:auto}
 .spin{position:absolute;top:10px;right:10px;min-height:40px;font-size:13px;box-shadow:0 3px 0 rgba(27,22,48,.15)}
-.prev canvas{flex:1;width:100%;min-height:300px;display:block;touch-action:none;image-rendering:pixelated}
+.prev canvas{flex:1 0 260px;width:100%;min-height:260px;display:block;touch-action:none;image-rendering:pixelated}
 #pvStats{background:var(--panel);margin:10px;border-radius:12px;padding:6px 12px 10px}
 #pvStats .bars{margin-top:4px}
 #pvStats p{margin:4px 0 0;font-size:13px;color:var(--mute)}
@@ -168,7 +168,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:30px}
 .rk .wl{text-align:right;font-variant-numeric:tabular-nums;font-size:14px;white-space:nowrap}.rk .wl em{display:block;font-style:normal;font-size:12px;color:#8a6a4a}
 .bt{padding:9px 6px;border-bottom:1px dashed #d8c8a8;font-size:15px}.bt .w{color:#a3242a;font-weight:700}.bt small{display:block;color:#8a6a4a;font-size:12px}
 .btag{position:absolute;left:0;top:0;pointer-events:auto;cursor:pointer;background:#5a3a1e;color:#f4ead6;font:15px/1 Jua,sans-serif;padding:6px 10px;border-radius:10px;white-space:nowrap;box-shadow:0 3px 0 rgba(0,0,0,.3)}
-@media(max-width:820px){.cgrid{grid-template-columns:1fr;overflow:auto}.prev canvas{min-height:230px;max-height:260px}.form{overflow:visible}.sheet.big{overflow:auto}}
+@media(max-width:820px){.cgrid{grid-template-columns:1fr;grid-template-rows:auto;overflow:auto}.prev{overflow:visible}.prev canvas{min-height:230px;max-height:260px}.form{overflow:visible}.sheet.big{overflow:auto}}
 .brand .code{min-height:32px;padding:0 10px;border-radius:9px;font-size:13px;background:var(--soft);font-variant-numeric:tabular-nums;letter-spacing:.04em;align-self:center}
 #gCode{text-transform:uppercase;letter-spacing:.12em}
 .or{text-align:center;color:var(--mute);font-size:13px;display:flex;gap:10px;align-items:center}.or::before,.or::after{content:"";flex:1;border-top:1px solid var(--line)}
