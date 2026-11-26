@@ -3015,7 +3015,7 @@ const boardG=window.__board;const btag=el('div','btag','광장 게시판');btag.
 let bdTab='rank';
 function openBoard(t){bdTab=t||bdTab;$('#mBoard').hidden=false;renderBoard()}
 function renderBoard(){if($('#mBoard').hidden)return;$('#bdRank').setAttribute('aria-selected',bdTab==='rank');$('#bdLog').setAttribute('aria-selected',bdTab==='log');const B=$('#bdBody');B.textContent='';
- if(bdTab==='rank'){const list=[...S.chars.values()].map(c=>{const r=record(c.id);return{c,w:r[0],l:r[1],rate:r[0]+r[1]?r[0]/(r[0]+r[1]):0}}).sort((a,b)=>b.w-a.w||b.rate-a.rate||a.l-b.l);
+ if(bdTab==='rank'){const list=[...S.chars.values()].map(c=>{const r=record(c.id);return{c,w:r[0],l:r[1],rate:r[0]+r[1]?r[0]/(r[0]+r[1]):0}}).sort((a,b)=>((b.w+b.l>0)-(a.w+a.l>0))||b.rate-a.rate||b.w-a.w||a.l-b.l||a.c.nick.localeCompare(b.c.nick));
   if(!list.length){B.append(el('div','empty','아직 주민이 없어요.'));return}
   list.forEach((x,i)=>{const row=el('div','rk');const nm=el('div');nm.append(el('b',null,x.c.nick),el('small',null,(x.c.real?x.c.real+' · ':'')+CLS[x.c.cls].n));const wl=el('div','wl',`${x.w}승 ${x.l}패`);wl.append(el('em',null,x.w+x.l?`승률 ${Math.round(x.rate*100)}%`:'전투 기록 없음'));
    row.append(el('div','n',String(i+1)),faceEl(x.c),nm,wl);row.style.cursor='pointer';row.onclick=()=>{$('#mBoard').hidden=true;openCard(x.c.id)};B.append(row)})}
