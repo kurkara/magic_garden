@@ -422,6 +422,8 @@ addEventListener('resize',resize);
 
 const matC={};function M(col,opt){const k=col+(opt?JSON.stringify(opt):'');return matC[k]||(matC[k]=new THREE.MeshPhongMaterial(Object.assign({color:col,flatShading:true,shininess:6},opt||{})))}
 function mesh(geo,mat,x=0,y=0,z=0){const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);return m}
+const STAGE=(()=>{const A=2.4,R=13.0,x=Math.sin(A)*R,z=Math.cos(A)*R,f=Math.atan2(-x,-z);const seats=[];[10.7,9.75,8.8,7.85,6.9].forEach((rr,k)=>{const n=k<4?5:6;for(let j=0;j<n;j++){const a=A+(j-(n-1)/2)*0.95/rr;seats.push([Math.sin(a)*rr,Math.cos(a)*rr])}});return{A,x,z,f,h:0.36,seats,busy:null}})();
+const WED=(()=>{const A=0.45,R=12.6;return{A,x:Math.sin(A)*R,z:Math.cos(A)*R}})();
 const fountain={drops:[]};const TABLES=[];const SEAT_Y=0.4;const SWINGS=[];
 function heartGeo(w,h,d){const s=new THREE.Shape();s.moveTo(0,-0.5);s.bezierCurveTo(-0.15,-0.35,-0.7,-0.05,-0.7,0.25);s.bezierCurveTo(-0.7,0.55,-0.4,0.72,-0.2,0.64);s.bezierCurveTo(-0.08,0.59,0,0.47,0,0.4);
  s.bezierCurveTo(0,0.47,0.08,0.59,0.2,0.64);s.bezierCurveTo(0.4,0.72,0.7,0.55,0.7,0.25);s.bezierCurveTo(0.7,-0.05,0.15,-0.35,0,-0.5);
@@ -467,6 +469,33 @@ function buildSwing(x,z){const g=new THREE.Group(),wd=M('#5e3a26'),wd2=M('#4a2c1
   const tb={x:tx,z:tz,seats:[]};for(let k=0;k<4;k++){const a=k/4*Math.PI*2+Math.PI/4;const sx=tx+Math.sin(a)*1.15,sz=tz+Math.cos(a)*1.15;const st=new THREE.Group();
    st.add(mesh(new THREE.CylinderGeometry(0.2,0.24,0.34,10),mb,0,0.17,0));st.add(mesh(new THREE.CylinderGeometry(0.26,0.24,0.06,12),mv,0,0.37,0));st.position.set(sx,0,sz);scene.add(st);
    tb.seats.push({x:sx,z:sz,a,occ:null,t:tb})}TABLES.push(tb)}
+ // concert stage (공연장)
+ {const G=new THREE.Group();G.position.set(STAGE.x,0,STAGE.z);G.rotation.y=STAGE.f;const wd=M('#7a5236'),wd2=M('#5a3a22'),rc=M('#a3202a'),rc2=M('#7a141e'),gd=M('#e0b840',{shininess:90});
+  G.add(mesh(new THREE.BoxGeometry(5.8,STAGE.h,3.4),wd,0,STAGE.h/2,0));for(let k=0;k<12;k++)G.add(mesh(new THREE.BoxGeometry(0.03,0.01,3.35),wd2,-2.75+k*0.5,STAGE.h+0.005,0));G.add(mesh(new THREE.BoxGeometry(5.9,0.08,0.12),gd,0,STAGE.h-0.02,1.72));
+  for(let k=0;k<2;k++)G.add(mesh(new THREE.BoxGeometry(1.6,0.18,0.4),wd2,0,0.09+k*0.18-0.05,1.9+0.35*(1-k)));
+  for(const sx of[-2.9,2.9]){G.add(mesh(new THREE.BoxGeometry(0.3,4.2,0.3),wd2,sx,2.1,-1.55));G.add(mesh(new THREE.ConeGeometry(0.25,0.5,4),gd,sx,4.45,-1.55))}G.add(mesh(new THREE.BoxGeometry(6.2,0.35,0.35),wd2,0,4.05,-1.55));
+  G.add(mesh(new THREE.BoxGeometry(5.5,3.7,0.08),rc2,0,STAGE.h+1.85,-1.65));for(let k=0;k<11;k++)G.add(mesh(new THREE.CylinderGeometry(0.12,0.14,3.7,6),k%2?rc:rc2,-2.5+k*0.5,STAGE.h+1.85,-1.55));
+  for(const sx of[-1,1]){const c=mesh(new THREE.CylinderGeometry(0.25,0.5,3.5,8),rc,sx*2.55,STAGE.h+1.8,-1.3);c.scale.z=0.5;c.rotation.z=sx*0.08;G.add(c);G.add(mesh(new THREE.TorusGeometry(0.28,0.05,4,10),gd,sx*2.55,STAGE.h+1.2,-1.15))}
+  for(let k=0;k<12;k++){const sw=mesh(new THREE.CylinderGeometry(0.28,0.28,0.5,8,1,true,0,Math.PI),rc,-2.75+k*0.5,3.65,-1.35);sw.rotation.z=Math.PI/2;sw.rotation.x=Math.PI;G.add(sw);G.add(mesh(new THREE.ConeGeometry(0.07,0.18,4),gd,-2.75+k*0.5,3.38,-1.15))}
+  const sg=document.createElement('canvas');sg.width=256;sg.height=64;{const x=sg.getContext('2d');x.fillStyle='#2a1a10';x.fillRect(0,0,256,64);x.strokeStyle='#e0b840';x.lineWidth=4;x.strokeRect(4,4,248,56);x.fillStyle='#ffe8a0';x.font='bold 34px "Noto Sans KR",sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('♪ 광장 공연장 ♪',128,34)}
+  G.add(mesh(new THREE.PlaneGeometry(2.6,0.65),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(sg)}),0,4.6,-1.36));
+  for(let k=0;k<7;k++){const x=-2.4+k*0.8;G.add(mesh(new THREE.BoxGeometry(0.22,0.1,0.14),wd2,x,STAGE.h+0.05,1.55));G.add(mesh(new THREE.SphereGeometry(0.08,6,4),M('#ffe8a0',{emissive:'#c09030'}),x,STAGE.h+0.12,1.5))}
+  for(const sx of[-1,1]){G.add(mesh(new THREE.CylinderGeometry(0.06,0.08,2.4,6),wd2,sx*3.4,1.2,1.4));G.add(mesh(new THREE.OctahedronGeometry(0.25,0),M('#ffe08a',{emissive:'#a07a20'}),sx*3.4,2.55,1.4));
+   const fl=mesh(new THREE.BoxGeometry(0.03,1.2,0.6),M(sx>0?'#2a6ab0':'#e0b840'),sx*3.05,3.0,-1.3);G.add(fl)}
+  scene.add(G);const cush=['#a3202a','#2a6ab0','#e0b840','#3a8a5a','#a04ac0'];STAGE.seats.forEach((p,i)=>{const c=mesh(new THREE.CylinderGeometry(0.3,0.32,0.1,8),M(cush[Math.floor(i/5)%5]),p[0],0.05,p[1]);scene.add(c)})}
+ // wedding hall (결혼식장)
+ {const G=new THREE.Group();G.position.set(WED.x,0,WED.z);G.rotation.y=Math.atan2(-WED.x,-WED.z);const wh=M('#fbf8f2'),gd=M('#e8c860',{shininess:80}),pk=['#f4a8c0','#ffffff','#ffd0dc','#e85a8a','#fff4c0'];let q=7;const rr=()=>{q=(q*9301+49297)%233280;return q/233280};
+  G.add(mesh(new THREE.BoxGeometry(5.2,0.12,3.2),M('#f4efe6'),0,0.06,-1.5));for(const sx of[-1,1]){G.add(mesh(new THREE.CylinderGeometry(0.14,0.16,2.9,10),wh,sx*1.3,1.5,-2.4));G.add(mesh(new THREE.BoxGeometry(0.4,0.2,0.4),wh,sx*1.3,0.15,-2.4))}
+  for(let k=0;k<=12;k++){const t=k/12*Math.PI,x=-Math.cos(t)*1.3,y=2.95+Math.sin(t)*1.0;G.add(mesh(new THREE.BoxGeometry(0.22,0.18,0.24),wh,x,y,-2.4));for(let j=0;j<2;j++)G.add(mesh(new THREE.IcosahedronGeometry(0.11+rr()*0.07,0),M(j?pk[(k+j)%5]:(k%2?'#4f8a3a':'#62a044')),x+(rr()-0.5)*0.3,y+(rr()-0.3)*0.3,-2.4+(rr()-0.5)*0.35))}
+  for(const sx of[-1,1])for(let k=0;k<9;k++)G.add(mesh(new THREE.IcosahedronGeometry(0.09+rr()*0.06,0),M(k%3?pk[k%5]:'#62a044'),sx*1.3+(rr()-0.5)*0.3,0.4+k*0.3,-2.25));
+  const ht=mesh(heartGeo(0.8,0.7,0.08),M('#e85a8a',{emissive:'#401020'}),0,3.25,-2.35);G.add(ht);for(const sx of[-0.5,0.5]){G.add(mesh(new THREE.ConeGeometry(0.14,0.24,8,1,true),gd,sx,3.55,-2.3));G.add(mesh(new THREE.CylinderGeometry(0.008,0.008,0.4,3),gd,sx,3.85,-2.3))}
+  G.add(mesh(new THREE.BoxGeometry(1.1,0.02,5.4),M('#ffffff'),0,0.13,0.3));for(let k=0;k<18;k++)G.add(mesh(new THREE.CircleGeometry(0.06,5),M(pk[k%5]),(rr()-0.5)*1.0,0.145,-2+rr()*4.6).rotateX(-Math.PI/2));
+  for(const sx of[-1,1])for(let row=0;row<3;row++)for(let k=0;k<2;k++){const cx=sx*(1.05+k*0.6),cz=-0.6+row*1.1;const ch=new THREE.Group();ch.position.set(cx,0,cz);ch.rotation.y=Math.PI;G.add(ch);ch.add(mesh(new THREE.BoxGeometry(0.42,0.05,0.42),wh,0,0.45,0));for(const lx of[-0.18,0.18])for(const lz of[-0.18,0.18])ch.add(mesh(new THREE.CylinderGeometry(0.02,0.02,0.45,4),wh,lx,0.22,lz));ch.add(mesh(new THREE.BoxGeometry(0.42,0.5,0.04),wh,0,0.72,0.2));if(k===0){ch.add(mesh(new THREE.BoxGeometry(0.2,0.2,0.02),M('#f4a8c0'),0,0.78,0.23))}}
+  for(const sx of[-1,1])for(const z of[-1.6,1.4]){G.add(mesh(new THREE.CylinderGeometry(0.06,0.1,1.0,6),gd,sx*0.75,0.5,z));for(let k=0;k<6;k++)G.add(mesh(new THREE.IcosahedronGeometry(0.12,0),M(k%2?'#ffffff':pk[k%5]),sx*0.75+(rr()-0.5)*0.3,1.05+rr()*0.25,z+(rr()-0.5)*0.3))}
+  G.add(mesh(new THREE.CylinderGeometry(0.25,0.3,0.9,8),wh,0,0.45,-1.7));G.add(mesh(new THREE.BoxGeometry(0.4,0.04,0.3),M('#e8dcc0'),0,0.92,-1.7));G.add(mesh(new THREE.CylinderGeometry(0.15,0.18,0.25,10),wh,0.55,0.13,-1.85));
+  const sg=document.createElement('canvas');sg.width=256;sg.height=64;{const x=sg.getContext('2d');x.fillStyle='#fbf4f0';x.fillRect(0,0,256,64);x.strokeStyle='#e8c860';x.lineWidth=4;x.strokeRect(4,4,248,56);x.fillStyle='#c84a7a';x.font='bold 30px "Noto Sans KR",sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('♥ 광장 결혼식장 ♥',128,34)}
+  const sb=new THREE.Group();sb.position.set(-2.2,0,2.6);sb.rotation.y=0.3;G.add(sb);sb.add(mesh(new THREE.CylinderGeometry(0.04,0.05,1.3,5),gd,0,0.65,0));sb.add(mesh(new THREE.PlaneGeometry(1.3,0.33),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(sg),side:THREE.DoubleSide}),0,1.35,0.03));
+  scene.add(G)}
  // heart swings
  for(const ang of[1.05,-1.66])buildSwing(Math.sin(ang)*13.4,Math.cos(ang)*13.4);
  // lamps
@@ -1411,7 +1440,7 @@ function updEnt(e,dt,T){const r=e.r;if(!r)return;let tx,tz;
   if(L2>0.01&&Math.hypot(px+vx*u,pz+vz*u)<R+0.1){const ux=px/pr,uz=pz/pr;if(!e.av){const cr=ux*vz-uz*vx;e.av=Math.abs(cr)<0.05*Math.sqrt(L2)?((e.seed&1)?1:-1):(cr<0?1:-1)}
    const k=clamp((R+0.5-pr)*1.5,-0.6,0.8);let wx=e.av*uz+ux*k,wz=-e.av*ux+uz*k;const wl=Math.hypot(wx,wz)||1;tx=px+wx/wl*1.2;tz=pz+wz/wl*1.2}else e.av=0}
  const dx=tx-e.x,dz=tz-e.z,d=Math.hypot(dx,dz);let sp=0;
- if(d>0.02){const mx=(e.state==='free'?Math.max(2.4,d*1.2):e.state==='sneak'?Math.max(2.6,d*1.3):(e.state==='flee'||e.state==='chase')?3.8:e.state==='scatter'?4.2:e.state==='begwalk'?1.6:2.2)*dt;const s=Math.min(d,mx);e.x+=dx/d*s;e.z+=dz/d*s;sp=s/dt;if(sp>0.15&&e.state!=='battle')e.face=Math.atan2(dx,dz)}
+ if(d>0.02){const mx=(e.state==='free'?Math.max(2.4,d*1.2):e.state==='sneak'?Math.max(2.6,d*1.3):(e.state==='flee'||e.state==='chase')?3.8:e.state==='scatter'?4.2:e.state==='begwalk'?1.6:e.state==='stagewalk'?3.0:2.2)*dt;const s=Math.min(d,mx);e.x+=dx/d*s;e.z+=dz/d*s;sp=s/dt;if(sp>0.15&&e.state!=='battle')e.face=Math.atan2(dx,dz)}
  pushOut(e);
  if((e.state==='battle'||e.state==='chat')&&e.foe&&e.foe.r)e.face=Math.atan2(e.foe.x-e.x,e.foe.z-e.z);
  if(e.state==='watch'&&e.watchC&&sp<0.15)e.face=Math.atan2(e.watchC[0]-e.x,e.watchC[1]-e.z);
@@ -1453,6 +1482,7 @@ function updEnt(e,dt,T){const r=e.r;if(!r)return;let tx,tz;
  if(e.state==='chase'&&sp>0.5)r.arms[1].rotation.x=-2.6+Math.sin(T*10)*0.3;
  if(e.c.cls==='beggar')flies(e,r,T);
  if(e.state==='sitwalk'&&Math.hypot(e.x-e.spot[0],e.z-e.spot[1])<0.08){e.state='sit';e.sitUntil=T+12+hrand(Math.floor(T),e.seed^7)*10;e.nextSay=T+1+hrand(Math.floor(T),e.seed^3)*2}
+ if(e.onStage&&e.state==='perform')y+=STAGE.h;
  r.g.position.set(e.x+Math.sin(e.head)*lunge+Math.cos(e.head)*side+swx,y,e.z+Math.cos(e.head)*lunge-Math.sin(e.head)*side+swz);r.g.rotation.set(rx,e.head+ry,0,'YXZ')}
 
 /* ---------- battles ---------- */
@@ -1532,11 +1562,12 @@ function detect(T){const bucket=Math.floor(T/240),cb=Math.floor(T/90);const free
  const tk=Math.floor(T*4);
  for(const e of ents.values())if(e.state==='scatter'&&(e.scatT-=0.25)<=0){e.state='free';e.cool=T+3}
  if(!gossip&&T>gosNext&&free.length){const sd=free[Math.floor(hrand(tk,0x6055)*free.length)];if(sd.c.cls!=='beggar'&&sd.state==='free'&&!startGossip(sd,T))gosNext=T+15}
- for(const p of ents.values())if(p.state==='perform'&&p.aud){p.aud=p.aud.filter(o=>o.state==='audience'&&o.perfB===p);for(const o of free)if(o.state==='free'&&o!==p&&Math.hypot(o.x-p.x,o.z-p.z)<7&&hrand(tk,o.seed^0xa0d)<0.3)joinAud(p,o)}
+ if(STAGE.busy&&(!ents.has(STAGE.busy.id)||!['stagewalk','perform'].includes(STAGE.busy.state))){const b=STAGE.busy;STAGE.busy=null;if(ents.has(b.id))endPerform(b)}
+ for(const p of ents.values()){if(p.state==='stagewalk'&&Math.hypot(p.x-p.spot[0],p.z-p.spot[1])<0.2)beginStage(p,T);if((p.state==='perform'||p.state==='stagewalk')&&p.aud){p.aud=p.aud.filter(o=>o.state==='audience'&&o.perfB===p);for(const o of free)if(o.state==='free'&&o!==p&&hrand(tk,o.seed^0xa0d)<0.5)joinAud(p,o)}}
  for(const e of free){if(e.state!=='free')continue;const cl=e.c.cls;
   if(cl==='rogue'&&!thefts.length&&(e.thiefCool||0)<T&&hrand(tk,e.seed^0x7eef)<0.02){const v=free.filter(o=>o!==e&&o.state==='free'&&Math.hypot(o.x-e.x,o.z-e.z)<7)[0];if(v){startTheft(e,v);continue}}
   if(cl==='alchemist'&&(e.brewCool||0)<T&&hrand(tk,e.seed^0xb4e)<0.025)startBrew(e,T);
-  else if(cl==='bard'&&(e.perfCool||0)<T&&hrand(tk,e.seed^0xba4d)<0.02)startPerform(e,T);
+  else if(cl==='bard'&&!STAGE.busy&&(e.perfCool||0)<T&&hrand(tk,e.seed^0xba4d)<0.02)startPerform(e,T);
   else if(cl==='beggar')for(const o of free){if(o===e||o.state!=='free'||o.c.cls==='beggar'||(o.stoneCool||0)>T)continue;if(Math.hypot(o.x-e.x,o.z-e.z)<3.5&&hrand(tk,o.seed^e.seed^0x570e)<0.08){o.stoneCool=T+10;throwStone(o,e)}}}
  for(let i=0;i<free.length;i++)for(let j=i+1;j<free.length;j++){const a=free[i],b=free[j];if(a.state!=='free'||b.state!=='free')continue;const d=Math.hypot(a.x-b.x,a.z-b.z);if(d>2.0)continue;
   const[p,q]=[a.id,b.id].sort();const bid='b-'+p+'-'+q+'-'+bucket,cid='c-'+p+'-'+q+'-'+cb;
@@ -1615,14 +1646,12 @@ function heartFloat(anc){const f=el('div','fl','♥');f.style.color=HEART_C[Math
 function noteFloat(e){const f=el('div','fl',NOTES[Math.floor(Math.random()*4)]);f.style.color=NOTE_C[Math.floor(Math.random()*NOTE_C.length)];f.style.fontSize=(20+Math.random()*14)+'px';tagsEl.append(f);floats.push({el:f,e,t:0,life:2.2,dx:(Math.random()-0.5)*70,wob:Math.random()*6})}
 function perfSlot(e,i){const a=e.perfFace+((i%4)-1.5)*0.45,rr=2.1+Math.floor(i/4)*0.85;return[e.x+Math.sin(a)*rr,e.z+Math.cos(a)*rr]}
 function slotOk(p){const d=Math.hypot(p[0],p[1]);if(d<5.2||d>15.3)return false;for(const tb of TABLES)if(Math.hypot(p[0]-tb.x,p[1]-tb.z)<1.8)return false;return Math.hypot(p[0]+7,p[1]+9.5)>1.6}
-function startPerform(e,T){e.state='perform';e.spot=[e.x,e.z];e.perfUntil=T+15+hrand(Math.floor(T),e.seed)*6;e.perfNote=T;
- let best=e.face,bs=-1;for(let k=0;k<16;k++){const f=e.face+(k%2?1:-1)*Math.ceil(k/2)*Math.PI/8;e.perfFace=f;let ok=0;for(let i=0;i<8;i++)if(slotOk(perfSlot(e,i)))ok++;if(ok>bs){bs=ok;best=f}if(ok===8)break}
- e.perfFace=best;e.face=best;e.slots=[];for(let i=0;i<12&&e.slots.length<8;i++){const p=perfSlot(e,i);if(slotOk(p))e.slots.push(p)}
- e.aud=[];const cand=[...ents.values()].filter(o=>o!==e&&o.state==='free'&&o.r&&Math.hypot(o.x-e.x,o.z-e.z)<8).sort((p,q)=>Math.hypot(p.x-e.x,p.z-e.z)-Math.hypot(q.x-e.x,q.z-e.z));
- for(const o of cand)joinAud(e,o);floatText(e,'공연 시작!','#ffd24a',true)}
+function startPerform(e,T){if(STAGE.busy&&STAGE.busy!==e)return;STAGE.busy=e;e.state='stagewalk';e.spot=[STAGE.x+Math.sin(STAGE.f)*0.2,STAGE.z+Math.cos(STAGE.f)*0.2];e.perfFace=STAGE.f;e.perfUntil=1e12;e.perfNote=1e12;e.slots=STAGE.seats.map(p=>p.slice());e.aud=[];
+ const cand=[...ents.values()].filter(o=>o!==e&&o.state==='free'&&o.r).sort((p,q)=>Math.hypot(p.x-STAGE.x,p.z-STAGE.z)-Math.hypot(q.x-STAGE.x,q.z-STAGE.z));for(const o of cand)joinAud(e,o);floatText(e,'공연하러 간다~ ♪','#ffd24a',true)}
+function beginStage(e,T){e.state='perform';e.onStage=1;e.face=e.perfFace;e.perfUntil=T+22+hrand(Math.floor(T),e.seed)*8;e.perfNote=T;floatText(e,'공연 시작!','#ffd24a',true)}
 function joinAud(e,o){const used=new Set(e.aud.map(a=>a.slotI));let si=-1;for(let i=0;i<e.slots.length;i++)if(!used.has(i)){si=i;break}if(si<0)return false;
  o.state='audience';o.perfB=e;o.slotI=si;o.spot=e.slots[si].slice();e.aud.push(o);return true}
-function endPerform(e){for(const o of e.aud||[])if(o.state==='audience'){o.state='free';o.perfB=null;o.cool=Date.now()/1000+3}e.aud=null;if(e.state==='perform'){e.state='free';e.cool=Date.now()/1000+3}e.perfCool=Date.now()/1000+60}
+function endPerform(e){if(STAGE.busy===e)STAGE.busy=null;e.onStage=0;for(const o of e.aud||[])if(o.state==='audience'){o.state='free';o.perfB=null;o.cool=Date.now()/1000+3}e.aud=null;if(e.state==='perform'){e.state='free';e.cool=Date.now()/1000+3}e.perfCool=Date.now()/1000+60}
 function startDuel(aid,bid){const a=ents.get(aid),b=ents.get(bid);if(!a||!b)return;if(a.state!=='free'||b.state!=='free'){toast('둘 중 한 명이 지금 전투 중이에요. 잠시 뒤에 다시 신청해 주세요.');return}
  a.state=b.state='duel';a.spot=[-0.85,7.2];b.spot=[0.85,7.2];duel={a,b,id:'d-'+[aid,bid].sort().join('-')+'-'+Date.now()};cam.follow=aid;cam.dist=Math.min(cam.dist,16);toast('광장 앞으로 모이는 중…')}
 
@@ -3018,7 +3047,7 @@ function frame(now){const dt=Math.min(0.05,(now-last)/1000);last=now;const T=Dat
  detT-=dt;if(detT<=0){detect(T);detT=0.25}
  for(const b of[...battles])stepBattle(b,dt);
  for(const c of[...chats])stepChat(c,dt);
- stepStones(dt);stepProps(T);for(const th of[...thefts])stepTheft(th,dt,T);stepGossip(dt,T);for(const sw of SWINGS){const o=sw.swing;const occ=sw.seats.some(q=>q.occ&&ents.has(q.occ)&&ents.get(q.occ).state==='sit');o.amp+=((occ?0.16:0.025)-o.amp)*Math.min(1,dt*0.8);o.th=Math.sin(T*1.7+o.ph)*o.amp;o.pv.rotation.x=o.th}for(const e of ents.values())if(e.state==='audience'&&(!e.perfB||!ents.has(e.perfB.id)||e.perfB.state!=='perform')){e.state='free';e.perfB=null}
+ stepStones(dt);stepProps(T);for(const th of[...thefts])stepTheft(th,dt,T);stepGossip(dt,T);for(const sw of SWINGS){const o=sw.swing;const occ=sw.seats.some(q=>q.occ&&ents.has(q.occ)&&ents.get(q.occ).state==='sit');o.amp+=((occ?0.16:0.025)-o.amp)*Math.min(1,dt*0.8);o.th=Math.sin(T*1.7+o.ph)*o.amp;o.pv.rotation.x=o.th}for(const e of ents.values())if(e.state==='audience'&&(!e.perfB||!ents.has(e.perfB.id)||(e.perfB.state!=='perform'&&e.perfB.state!=='stagewalk'))){e.state='free';e.perfB=null}
  for(let i=timers.length-1;i>=0;i--){timers[i].t-=dt;if(timers[i].t<=0){const f=timers[i].fn;timers.splice(i,1);f()}}
  for(let i=fx.length-1;i>=0;i--){const f=fx[i];f.t+=dt;f.m.scale.setScalar(1+f.t*6);f.m.material.opacity=Math.max(0,1-f.t/0.5);if(f.t>0.5){scene.remove(f.m);f.m.geometry.dispose();f.m.material.dispose();fx.splice(i,1)}}
  fountain.orb.rotation.y+=dt;fountain.orb.position.y=2.85+Math.sin(T*2)*0.08;
