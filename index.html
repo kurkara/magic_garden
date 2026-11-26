@@ -494,17 +494,39 @@ function buildSwing(x,z){const g=new THREE.Group(),wd=M('#5e3a26'),wd2=M('#4a2c1
    scene.add(G)}}
  // trees
  const greens=['#4f9a4a','#3f8a52','#6aae4a','#5a9a3a'];
- for(let i=0;i<46;i++){const a=r()*Math.PI*2,d=19.5+r()*20,x=Math.sin(a)*d,z=Math.cos(a)*d;if(z<-30&&Math.abs(x)<14)continue;const s=0.8+r()*0.8;
+ for(let i=0;i<46;i++){const a=r()*Math.PI*2,d=19.5+r()*20,x=Math.sin(a)*d,z=Math.cos(a)*d;if(z<-28&&Math.abs(x)<24)continue;const s=0.8+r()*0.8;
   scene.add(mesh(new THREE.CylinderGeometry(0.18*s,0.28*s,1.4*s,5),M('#7a5236'),x,0.7*s,z));
   const c=r()<0.5?new THREE.ConeGeometry(1.3*s,2.8*s,6):new THREE.IcosahedronGeometry(1.3*s,0);
   const cm=mesh(c,M(greens[i%4]),x,(r()<0.5?2.6:2.4)*s,z);cm.rotation.y=r()*3;scene.add(cm)}
- // castle
- const cs=new THREE.Group();cs.add(mesh(new THREE.BoxGeometry(22,6,4),M('#cfc6d8'),0,3,0));
- for(let i=0;i<10;i++)cs.add(mesh(new THREE.BoxGeometry(1,0.9,4.2),M('#cfc6d8'),-10+i*2.2,6.4,0));
- cs.add(mesh(new THREE.BoxGeometry(4,4,0.3),M('#5a3a5a'),0,2,2.05));
- for(const[x,h,c]of[[-11,11,'#5a6ad2'],[11,11,'#5a6ad2'],[-4,14,'#e2407a'],[4,14,'#e2407a'],[0,18,'#d9a521']]){
-  cs.add(mesh(new THREE.CylinderGeometry(1.6,1.8,h,8),M('#ddd5e5'),x,h/2,x===0?-2:0));
-  cs.add(mesh(new THREE.ConeGeometry(2.1,4,8),M(c),x,h+2,x===0?-2:0))}
+ // castle (palace)
+ const cs=new THREE.Group();{const ST=M('#ebe1c8'),SD=M('#d2bf96'),RF=M('#9a2a2e'),SL=M('#5a4e5e'),GD=M('#e0b840',{shininess:90}),WN=M('#34405e',{shininess:80}),WF=M('#f6f2ea'),DK=M('#2a2430');
+  const B=(w,h,d,m,x,y,z)=>{const o=mesh(new THREE.BoxGeometry(w,h,d),m,x,y,z);cs.add(o);return o},C=(rt,rb,h,sg,m,x,y,z)=>{const o=mesh(new THREE.CylinderGeometry(rt,rb,h,sg),m,x,y,z);cs.add(o);return o};
+  const WG=new THREE.BoxGeometry(0.62,1.1,0.12),WFG=new THREE.BoxGeometry(0.82,1.32,0.08),WTG=new THREE.ConeGeometry(0.46,0.4,4);
+  const win=(x,y,z,arch,ry=0)=>{const g=new THREE.Group();g.position.set(x,y,z);g.rotation.y=ry;g.add(new THREE.Mesh(WFG,WF));const gl=new THREE.Mesh(WG,WN);gl.position.z=0.04;g.add(gl);if(arch){const t=new THREE.Mesh(WTG,WF);t.position.y=0.82;t.rotation.y=Math.PI/4;t.scale.z=0.25;g.add(t)}cs.add(g)};
+  const grid=(cx,cz,w,cols,rows,y0,dy,arch)=>{for(let r2=0;r2<rows;r2++)for(let k=0;k<cols;k++)win(cx-w/2+(k+0.5)*w/cols,y0+r2*dy,cz,arch)};
+  const prism=(w,d,h,m,x,y,z,ridge=0.12)=>{const sh=new THREE.Shape();sh.moveTo(-d/2,0);sh.lineTo(d/2,0);sh.lineTo(d*ridge,h);sh.lineTo(-d*ridge,h);sh.lineTo(-d/2,0);const g=new THREE.ExtrudeGeometry(sh,{depth:w,bevelEnabled:false});g.translate(0,0,-w/2);const o=new THREE.Mesh(g,m);o.rotation.y=Math.PI/2;o.position.set(x,y,z);cs.add(o);return o};
+  const spire=(x,y,z,r,h,m,flag)=>{C(0.02,r,h,8,m,x,y+h/2,z);C(0.05,0.05,1.0,4,GD,x,y+h+0.4,z);cs.add(mesh(new THREE.SphereGeometry(0.14,6,4),GD,x,y+h+0.1,z));if(flag){const f=mesh(new THREE.BoxGeometry(0.8,0.45,0.03),M(flag),x+0.42,y+h+0.65,z);cs.add(f)}};
+  const crenel=(x,y,z,r,n)=>{for(let k=0;k<n;k++){const a=k/n*Math.PI*2;B(0.45,0.5,0.45,SD,x+Math.sin(a)*r,y,z+Math.cos(a)*r).rotation.y=a}};
+  const gable=(cx,cz,w,h,y0,m)=>{const st=5;for(let k=0;k<st;k++){const ww=w*(1-k/st),hh=h/st;B(ww,hh,0.5,m,cx,y0+hh*(k+0.5),cz);cs.add(mesh(new THREE.ConeGeometry(0.15,0.5,4),GD,cx-ww/2+0.15,y0+hh*(k+1)+0.25,cz));cs.add(mesh(new THREE.ConeGeometry(0.15,0.5,4),GD,cx+ww/2-0.15,y0+hh*(k+1)+0.25,cz))}spire(cx,y0+h,cz,0.25,1.2,SL)};
+  // central baroque block
+  B(13,8,7,ST,0,4,0);B(13.4,0.35,7.4,SD,0,8.1,0);B(13.4,0.5,7.4,SD,0,0.25,0);prism(13,7,3.2,RF,0,8.25,0,0.28);
+  grid(0,3.53,12,8,2,2.6,2.6,true);for(let k=0;k<5;k++){const x=-4.4+k*2.2;B(0.9,1.1,1.0,ST,x,9.4,2.0);prism(0.9,1.0,0.6,RF,x,9.95,2.0,0.02);win(x,9.35,2.52,false)}
+  B(4.2,9.5,1.0,SD,0,4.75,3.7);const ped=new THREE.Shape();ped.moveTo(-2.4,0);ped.lineTo(2.4,0);ped.lineTo(0,1.6);ped.lineTo(-2.4,0);const pm=new THREE.Mesh(new THREE.ExtrudeGeometry(ped,{depth:0.6,bevelEnabled:false}),SD);pm.position.set(0,9.5,3.5);cs.add(pm);cs.add(mesh(new THREE.CircleGeometry(0.5,16),GD,0,10.1,4.12));
+  for(const x of[-1.4,0,1.4])B(0.32,4.2,0.32,WF,x,2.4,4.25);B(4.3,0.3,0.6,WF,0,4.6,4.2);B(1.4,2.6,0.2,DK,0,1.3,4.21);win(0,6.0,4.25,true);win(-1.2,6.0,4.25,true);win(1.2,6.0,4.25,true);
+  C(1.0,1.2,2.2,8,ST,0,12.6,0);cs.add(mesh(new THREE.SphereGeometry(1.15,12,8,0,Math.PI*2,0,Math.PI/2),SL,0,13.7,0));spire(0,14.7,0,0.3,2.4,SL,'#e2407a');cs.add(mesh(new THREE.CircleGeometry(0.55,16),WF,0,12.7,1.02));
+  for(let k=0;k<4;k++)B(9-k*1.6,0.35,0.9,SD,0,0.17+k*0.35,5.5-k*0.45);for(const sx of[-1,1]){for(let k=0;k<8;k++)C(0.09,0.12,0.7,6,WF,sx*(5.6-k*0.55),0.85,5.9);B(4.6,0.12,0.2,WF,sx*3.7,1.25,5.9)}
+  // left gothic wing + big round tower
+  B(9,10,6.5,SD,-11,5,0);prism(9,6.5,4.5,RF,-11,10,0,0.04);grid(-11,3.28,8,4,3,2.4,2.8,true);gable(-9,3.3,4,5,10,SD);win(-9,12,3.6,true);
+  C(2.3,2.5,17,10,SD,-16.8,8.5,0.6);crenel(-16.8,17.3,0.6,2.4,12);spire(-16.8,17.5,0.6,2.6,6.5,SL,'#5a6ad2');for(let r2=0;r2<4;r2++)for(const a of[-0.5,0.5])win(-16.8+Math.sin(a)*2.45,3+r2*3.4,0.6+Math.cos(a)*2.45,true,a);
+  for(const[a,y]of[[1.2,13],[-1.0,15]]){const x=-16.8+Math.sin(a)*2.5,z=0.6+Math.cos(a)*2.5;C(0.6,0.5,2.4,8,SD,x,y,z);spire(x,y+1.2,z,0.7,2.4,SL)}
+  C(1.3,1.4,13,8,SD,-6.6,6.5,3.2);spire(-6.6,13,3.2,1.5,4,SL,'#e0b840');for(let r2=0;r2<3;r2++)win(-6.6,3+r2*3.2,4.55,true);
+  // right renaissance wing + onion tower
+  B(10,11,6.5,ST,11.5,5.5,0);prism(10,6.5,4.2,RF,11.5,11,0,0.1);grid(11.5,3.28,9,5,3,2.4,2.9,false);gable(9.3,3.3,3.6,4.2,11,ST);gable(13.7,3.3,3.6,4.2,11,ST);win(9.3,12.6,3.6,false);win(13.7,12.6,3.6,false);
+  C(2.0,2.0,15,8,ST,17.4,7.5,1.0);B(4.3,0.4,4.3,SD,17.4,15.1,1.0).rotation.y=Math.PI/8;const on=mesh(new THREE.SphereGeometry(1.9,10,8),SL,17.4,16.6,1.0);on.scale.y=1.2;cs.add(on);spire(17.4,18.4,1.0,0.6,2.2,SL,'#e2407a');
+  for(let r2=0;r2<4;r2++)for(const a of[-0.4,0.4])win(17.4+Math.sin(a)*2.05,3+r2*3.0,1.0+Math.cos(a)*2.05,false,a);
+  C(1.1,1.2,10,8,ST,6.4,5,3.4);const dm=mesh(new THREE.SphereGeometry(1.2,10,6,0,Math.PI*2,0,Math.PI/2),SL,6.4,10,3.4);cs.add(dm);spire(6.4,11,3.4,0.25,1.6,SL);for(let r2=0;r2<3;r2++)win(6.4,2.6+r2*2.6,4.55,true);
+  // flowerbeds + hedges in front
+  for(const sx of[-1,1]){B(7,0.5,1.4,M('#4f8a3a'),sx*10.5,0.25,5.2);for(let k=0;k<8;k++)cs.add(mesh(new THREE.IcosahedronGeometry(0.22,0),M(['#e2407a','#f2c020','#ffffff','#c0303a'][k%4]),sx*(7.6+k*0.8),0.65,5.2))}}
  cs.position.set(0,0,-46);scene.add(cs);
  // notice board
  const bd=new THREE.Group();const wood=M('#8a5a34'),dark=M('#5a3a1e');
@@ -633,7 +655,10 @@ function buildChar(c){
    const sd=rb(0.012,legL*0.75,0.02,gd,0.005);sd.position.set((s>0?1:-1)*0.1*W,-hipY+0.06+legL*0.46,0);p.add(sd);const hl=rb(0.18*W,0.04,0.06,gd,0.01);hl.position.set(0,-hipY+0.03,-0.08);p.add(hl)}
   if(R){const bt=rb(0.19*W,legL*0.92,0.21*W,'#6a4428',0.045);bt.position.y=-hipY+0.06+legL*0.46;p.add(bt);const cf=new THREE.Mesh(new THREE.CylinderGeometry(0.135*W,0.11*W,0.08,8,1,true),mat('#8a5a32',{side:THREE.DoubleSide}));cf.position.y=-hipY+0.06+legL*0.94;p.add(cf);
    for(const yy of[0.3,0.6]){const st=new THREE.Mesh(new THREE.TorusGeometry(0.1*W,0.012,4,8),mt('#3a2616'));st.rotation.x=Math.PI/2;st.position.y=-hipY+0.06+legL*yy;p.add(st);const bk=rb(0.03,0.03,0.01,'#c9a440',0.005);bk.position.set(0.07*W,-hipY+0.06+legL*yy,0.06*W);p.add(bk)}}
-  if(G||PZ||(CL&&CL.boots)){const bt=rb(0.185*W,legL*0.78,0.205*W,'#18181c',0.04);bt.position.y=-hipY+0.06+legL*0.39;p.add(bt);const cf=rb(0.2*W,0.05,0.22*W,'#18181c',0.02);cf.position.y=-hipY+0.06+legL*0.78;p.add(cf)}body.add(p);legs.push(p)}
+  if(G||PZ||(CL&&CL.boots)){const bt=rb(0.185*W,legL*0.78,0.205*W,'#18181c',0.04);bt.position.y=-hipY+0.06+legL*0.39;p.add(bt);const cf=rb(0.2*W,0.05,0.22*W,'#18181c',0.02);cf.position.y=-hipY+0.06+legL*0.78;p.add(cf)}
+  if(X&&X.pirate&&s>0){const pm=l.material;for(const ch of p.children)ch.visible=false;const th=new THREE.Mesh(roundBox(0.155*W,legL*0.5,0.175*W,0.04),pm);th.position.y=-legL*0.25;p.add(th);const kn=new THREE.Mesh(new THREE.CylinderGeometry(0.1*W,0.085*W,0.1,8),mt('#6a4428'));kn.position.y=-legL*0.52;p.add(kn);for(const yy of[0.47,0.57]){const st=new THREE.Mesh(new THREE.TorusGeometry(0.09*W,0.012,4,8),mt('#3a2616'));st.rotation.x=Math.PI/2;st.position.y=-legL*yy;p.add(st)}
+   const pg=new THREE.Mesh(new THREE.CylinderGeometry(0.05*W,0.03*W,hipY-legL*0.56,7),mt('#7a5232'));pg.position.y=-legL*0.56-(hipY-legL*0.56)/2;p.add(pg);const tp=new THREE.Mesh(new THREE.CylinderGeometry(0.032*W,0.036*W,0.05,7),mt('#2a1a10'));tp.position.y=-hipY+0.025;p.add(tp);const rg=new THREE.Mesh(new THREE.TorusGeometry(0.045*W,0.01,3,8),mt('#8a8e96'));rg.rotation.x=Math.PI/2;rg.position.y=-legL*0.7;p.add(rg)}
+  body.add(p);legs.push(p)}
  if(low!=='pants'&&!RC){const rbot=(Z?0.4:low==='robe'?0.31:0.42)*W,seg=low==='dress'?10:8,top=hipY+0.06,bot=(X0&&(X0.beg||X0.rags))?0.2:0.05;
   const sk=new THREE.Mesh(new THREE.CylinderGeometry(0.2*W,rbot,top-bot,seg),K?pin:T?mat('#ffffff',{map:crossTex(main,acc,1)}):(X0&&X0.alb)?mat('#ffffff',{map:patTex(18,X0.alb,acc,acc)}):cloth);sk.position.y=(top+bot)/2;body.add(sk);
   const tr=new THREE.Mesh(new THREE.CylinderGeometry(rbot+0.01,rbot+0.02,0.06,seg),mt(acc));tr.position.y=bot+0.03;if(!(X0&&(X0.beg||X0.rags)))body.add(tr)}
