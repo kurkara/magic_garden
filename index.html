@@ -400,13 +400,13 @@ const AFF=1.07;const typeOf=c=>CTYPE[c&&c.cls]??0;
 const affOf=(a,b)=>{const ta=typeOf(a),tb=typeOf(b);return(ta+1)%3===tb?1:(tb+1)%3===ta?-1:0};
 const PASSIVE={rogue:'패시브 회피 반격: 기본 회피율이 높고, 공격을 피하면 단검을 던져 반격',archer:'패시브 회피 반격: 기본 회피율이 높고, 공격을 피하면 화살로 반격'};
 const typeText=c=>{const t=typeOf(c);return`속성 ${TYPES[t].n} · ${TYPES[(t+1)%3].n}에 강함 · ${TYPES[(t+2)%3].n}에 약함`};
-const FX={double:'두 번 공격',crit:'강한 한 방',heal:'체력 회복',dot:'독 데미지',stun:'상대 한 턴 멈춤',shield:'다음 피해 절반',lifesteal:'흡혈',summon:'강력한 돌진',buff:'공격력 상승',pierce:'방어 무시',charm:'유혹 시도 — 성공(60%)하면 상대가 한 턴 기절, 실패하면 약한 공격',steal:'55% 확률로 상대 스킬을 훔쳐 바로 1회 사용 + 상대의 다음 스킬 봉인 (실패하면 급소 찌르기)',luck:'동전 던지기 — 앞면이면 운빨 버프(공격력 상승) + 강한 한 방, 뒷면이면 약한 공격'};
+const FX={double:'두 번 공격',crit:'강한 한 방',heal:'체력 회복',dot:'독 데미지',stun:'상대 한 턴 멈춤',shield:'다음 피해 절반',lifesteal:'흡혈',summon:'강력한 돌진',buff:'공격력 상승',pierce:'방어 무시',charm:'유혹 시도 — 성공(60%)하면 상대가 한 턴 기절, 실패하면 약한 공격',steal:'55% 확률로 상대 스킬을 훔쳐 바로 1회 사용 + 상대의 다음 스킬 봉인 (실패하면 급소 찌르기)',slap:'악녀의 싸다구 — 강하게 한 대 치고 45% 확률로 상대가 얼얼해서 한 턴 멈춤',luck:'동전 던지기 — 앞면이면 운빨 버프(공격력 상승) + 강한 한 방, 뒷면이면 약한 공격'};
 const HAIRS=[['short','짧은 머리'],['messy','삐죽 머리'],['bob','단발'],['long','긴 머리'],['pony','포니테일'],['twin','양갈래'],['bun','똥머리'],['bald','민머리']];
 const HAIRC=['#1d1a17','#4a2f1f','#8a5a2b','#d9b25a','#ece3d0','#b7342c','#e27aa8','#4a6fd2','#5fb08a','#7a4bc2'];
 const SKINS=['#ffe0c8','#f5c9a6','#e0aa80','#c08a5c','#8d5a3b','#5e3b26'];
 
 function statsOf(c){const C=CLS[c.cls]||CLS.adventurer;const[h,a,d,s]=C.st;const W=c.w||1,H=c.h||1;
- return{hp:Math.round(h*(0.8+0.25*W)),atk:Math.round(a*(0.9+(H-0.85)*0.6)),def:Math.round(d+(W-1)*7),spd:Math.max(3,Math.round(s-(W-1)*7+(1.2-H)*3)),sk:C.sk[0],fx:C.sk[1],cls:C.id}}
+ return{hp:Math.round(h*(0.8+0.25*W)),atk:Math.round(a*(0.9+(H-0.85)*0.6)),def:Math.round(d+(W-1)*7),spd:Math.max(3,Math.round(s-(W-1)*7+(1.2-H)*3)),sk:(c.cls==='princess'&&c.outfit===2)?'싸다구 때리기!':C.sk[0],fx:(c.cls==='princess'&&c.outfit===2)?'slap':C.sk[1],cls:C.id}}
 
 /* ---------- three setup ---------- */
 const cv=$('#cv');
@@ -1473,6 +1473,7 @@ function simBattle(id,A,B){const r=rng(hash32(id));const af=affOf(A,B),am=[af>0?
    case'lifesteal':{const d=hit(1.2),h=Math.round(d/2);hp[cur]=Math.min(me.hp,hp[cur]+h);e.h=h;break}
    case'summon':hit(1.5);break;case'buff':SS.bf*=1.3;hit(1);break;case'pierce':hit(1.3,true);break;case'luck':{const hd=r()<0.5;e.coin=hd?1:-1;if(hd){SS.bf*=1.35;hit(1.4)}else hit(0.5);break}
    case'charm':if(r()<0.6){e.charm=1;hit(0.6);T.stun=1}else{e.charm=-1;hit(0.4)}break;
+   case'slap':hit(1.35);if(r()<0.45){T.stun=1;e.slap=2}else e.slap=1;break;
    case'steal':{const of=s[o].fx;if(of!=='steal'&&r()<0.55){e.steal=s[o].sk;T.seal=1;doFx(of)}else{e.steal='';hit(1.6)}break}
    default:hit(1)}};
   if(!sk)hit(1);else doFx(me.fx);
@@ -1511,7 +1512,7 @@ function stepBattle(b,dt){b.t-=dt;if(b.t>0)return;const[A,B]=b.ents;
   if(ev.t==='counter'){at.atkT=0.45;floatText(at,'회피 반격!','#7ad8ff');shootProj(at,tg,ev.rng==='archer'?'arrow':'dagger',()=>{tg.hitT=0.3;floatText(tg,'-'+ev.d,'#ff5a6a');setHp()});b.t=0.9;return}
   if(ev.t==='poison'){floatText(at,'독 -'+ev.d,'#b06bff');at.hitT=0.3;setHp()}
   else if(ev.t==='stun'){floatText(at,'멈춤!','#ffd84a')}
-  else{at.atkT=0.45;if(ev.sealed)floatText(at,'스킬 봉인됨!','#b8b4c8');if(ev.t==='skill'){floatText(at,ev.sk,'#ffd84a',true);if(ev.charm)later(0.12,()=>floatText(tg,ev.charm>0?'💗 유혹 성공! 기절':'유혹 실패…',ev.charm>0?'#ff8ac8':'#b8b4c8'));
+  else{at.atkT=0.45;if(ev.sealed)floatText(at,'스킬 봉인됨!','#b8b4c8');if(ev.t==='skill'){floatText(at,ev.sk,'#ffd84a',true);if(ev.charm)later(0.12,()=>floatText(tg,ev.charm>0?'💗 유혹 성공! 기절':'유혹 실패…',ev.charm>0?'#ff8ac8':'#b8b4c8'));if(ev.slap)later(0.12,()=>floatText(tg,ev.slap>1?'짜악!! 얼얼해서 멈춤':'짝!',ev.slap>1?'#ff5a7a':'#ff9aa8',ev.slap>1));
     if(ev.steal!=null)later(0.12,()=>floatText(at,ev.steal?'🗝 '+ev.steal+' 훔침!':'훔치기 실패 → 급소 찌르기',ev.steal?'#7affc8':'#b8b4c8'));
     if(ev.coin)later(0.12,()=>floatText(at,ev.coin>0?'🪙 앞면! 운빨 버프':'🪙 뒷면…',ev.coin>0?'#ffe169':'#b8b4c8'));later(0.18,()=>burst(tg.x,tg.z,acc))}
    if(ev.quick0)floatText(at,'연속 행동!','#7ad8ff');
@@ -1581,7 +1582,7 @@ function stepGossip(dt,T){const g=gossip;if(!g)return;g.t+=dt;g.mem=g.mem.filter
  if(g.beg&&g.t>g.begAt&&g.beg.state==='free'){g.beg.state='begwalk';g.beg.spot=[g.cx,g.cz]}
  if(g.beg&&g.beg.state==='begwalk')g.beg.spot=[g.cx+Math.sin(g.t)*0.2,g.cz];
  const bg=[...ents.values()].find(o=>o.c.cls==='beggar'&&o.r&&o.state!=='battle'&&Math.hypot(o.x-g.cx,o.z-g.cz)<3.1);
- if(bg){for(const e of g.mem){bubble(e,'(!)');}const B=bg;const m=g.mem.slice();later(0.7,()=>{for(const e of m)if(e.state==='gossip'){bubble(e,'');floatText(e,['으악 냄새!','윽!','도망가!','(!)'][Math.floor(Math.random()*4)],'#c8ff8a')}endGossip(g,true,B);if(ents.has(B.id))floatText(B,'…왜들 그래','#c8c4d8')});g.mem.forEach(e=>e.state==='gossip'&&(e.spot=[e.x,e.z]));gossip=Object.assign(g,{t:-1e9});gossip=null;return}
+ if(bg){for(const e of g.mem){bubble(e,'(!)');}const B=bg;const m=g.mem.slice();later(0.7,()=>{const tk=m.filter(e=>e.state==='gossip');endGossip(g,true,B);const SM=['아 뭔 냄새야','도망가!','아 뭔 냄새야?!','도망가!!'];tk.forEach((e,i)=>{if(!ents.has(e.id))return;bubble(e,SM[(i+Math.floor(Math.random()*4))%4]);later(1.8,()=>{if(ents.has(e.id))bubble(e,'')})});if(ents.has(B.id))floatText(B,'…왜들 그래','#c8c4d8')});g.mem.forEach(e=>e.state==='gossip'&&(e.spot=[e.x,e.z]));gossip=Object.assign(g,{t:-1e9});gossip=null;return}
  if(g.t>16)endGossip(g)}
 function throwStone(o,b){o.throwT=0.9;o.throwAt=b;o.atkT=0.45;later(0.22,()=>{if(!o.r||!b.r)return;const m=mesh(new THREE.DodecahedronGeometry(0.09,0),M('#8a8680'),o.x,1.1,o.z);scene.add(m);stones.push({m,ax:o.x,az:o.z,b,t:0})})}
 function shootProj(a,b,kind,done){const g=new THREE.Group();
