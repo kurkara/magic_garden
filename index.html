@@ -3017,7 +3017,7 @@ function openBoard(t){bdTab=t||bdTab;$('#mBoard').hidden=false;renderBoard()}
 function renderBoard(){if($('#mBoard').hidden)return;$('#bdRank').setAttribute('aria-selected',bdTab==='rank');$('#bdLog').setAttribute('aria-selected',bdTab==='log');const B=$('#bdBody');B.textContent='';
  if(bdTab==='rank'){const list=[...S.chars.values()].map(c=>{const r=record(c.id);return{c,w:r[0],l:r[1],rate:r[0]+r[1]?r[0]/(r[0]+r[1]):0}}).sort((a,b)=>((b.w+b.l>0)-(a.w+a.l>0))||b.rate-a.rate||b.w-a.w||a.l-b.l||a.c.nick.localeCompare(b.c.nick));
   if(!list.length){B.append(el('div','empty','아직 주민이 없어요.'));return}
-  list.forEach((x,i)=>{const row=el('div','rk');const nm=el('div');nm.append(el('b',null,x.c.nick),el('small',null,(x.c.real?x.c.real+' · ':'')+CLS[x.c.cls].n));const wl=el('div','wl',`${x.w}승 ${x.l}패`);wl.append(el('em',null,x.w+x.l?`승률 ${Math.round(x.rate*100)}%`:'전투 기록 없음'));
+  list.forEach((x,i)=>{const row=el('div','rk');const nm=el('div');nm.append(el('b',null,x.c.nick),el('small',null,(x.c.real?x.c.real+' · ':'')+CLS[x.c.cls].n));const wl=el('div','wl',x.w+x.l?`승률 ${Math.round(x.rate*100)}%`:'기록 없음');wl.append(el('em',null,`${x.w}승 ${x.l}패`));
    row.append(el('div','n',String(i+1)),faceEl(x.c),nm,wl);row.style.cursor='pointer';row.onclick=()=>{$('#mBoard').hidden=true;openCard(x.c.id)};B.append(row)})}
  else{const bs=[...S.battles.values()].sort((a,b)=>b.at-a.at).slice(0,50);if(!bs.length){B.append(el('div','empty','아직 전투가 없어요. 주민끼리 마주치면 가끔 싸움이 붙어요.'));return}
   for(const b of bs){const d=el('div','bt');const nA=S.chars.get(b.a)?.nick||b.an||'?',nB=S.chars.get(b.b)?.nick||b.bn||'?';const wn=b.win===b.a?nA:nB;
