@@ -1440,7 +1440,7 @@ function updEnt(e,dt,T){const r=e.r;if(!r)return;let tx,tz;
   if(L2>0.01&&Math.hypot(px+vx*u,pz+vz*u)<R+0.1){const ux=px/pr,uz=pz/pr;if(!e.av){const cr=ux*vz-uz*vx;e.av=Math.abs(cr)<0.05*Math.sqrt(L2)?((e.seed&1)?1:-1):(cr<0?1:-1)}
    const k=clamp((R+0.5-pr)*1.5,-0.6,0.8);let wx=e.av*uz+ux*k,wz=-e.av*ux+uz*k;const wl=Math.hypot(wx,wz)||1;tx=px+wx/wl*1.2;tz=pz+wz/wl*1.2}else e.av=0}
  const dx=tx-e.x,dz=tz-e.z,d=Math.hypot(dx,dz);let sp=0;
- if(d>0.02){const mx=(e.state==='free'?Math.max(2.4,d*1.2):e.state==='sneak'?Math.max(2.6,d*1.3):(e.state==='flee'||e.state==='chase')?3.8:e.state==='scatter'?4.2:e.state==='begwalk'?1.6:e.state==='stagewalk'?3.0:2.2)*dt;const s=Math.min(d,mx);e.x+=dx/d*s;e.z+=dz/d*s;sp=s/dt;if(sp>0.15&&e.state!=='battle')e.face=Math.atan2(dx,dz)}
+ if(d>0.02){const mx=(e.state==='free'?Math.max(2.4,d*1.2):e.state==='sneak'?Math.max(2.6,d*1.3):(e.state==='flee'||e.state==='chase')?3.8:e.state==='scatter'?4.2:e.state==='begwalk'?1.6:e.state==='stagewalk'?3.0:e.state==='begflee'?3.4:e.state==='begchase'?3.0:2.2)*dt;const s=Math.min(d,mx);e.x+=dx/d*s;e.z+=dz/d*s;sp=s/dt;if(sp>0.15&&e.state!=='battle')e.face=Math.atan2(dx,dz)}
  pushOut(e);
  if((e.state==='battle'||e.state==='chat')&&e.foe&&e.foe.r)e.face=Math.atan2(e.foe.x-e.x,e.foe.z-e.z);
  if(e.state==='watch'&&e.watchC&&sp<0.15)e.face=Math.atan2(e.watchC[0]-e.x,e.watchC[1]-e.z);
@@ -1480,6 +1480,7 @@ function updEnt(e,dt,T){const r=e.r;if(!r)return;let tx,tz;
  if(e.state==='sneak'&&e.reachT>0){e.reachT-=dt;r.arms[0].rotation.x=r.arms[1].rotation.x=-1.3+Math.sin(T*14)*0.15;rx+=0.2}else if(e.state==='sneak'&&sp>0.1){rx+=0.25}
  if(e.state==='gossip'&&sp<0.1){const k=T*3+e.seed;if(Math.sin(k*0.7)>0.3)r.arms[1].rotation.x=-0.9+Math.sin(k*3)*0.4;y+=Math.abs(Math.sin(k))*0.02}
  if(e.state==='chase'&&sp>0.5)r.arms[1].rotation.x=-2.6+Math.sin(T*10)*0.3;
+ if(e.state==='begchase'){r.arms[0].rotation.x=-1.5+Math.sin(T*9)*0.25;r.arms[1].rotation.x=-1.5+Math.sin(T*9+1.5)*0.25}
  if(e.c.cls==='beggar')flies(e,r,T);
  if(e.state==='sitwalk'&&Math.hypot(e.x-e.spot[0],e.z-e.spot[1])<0.08){e.state='sit';e.sitUntil=T+12+hrand(Math.floor(T),e.seed^7)*10;e.nextSay=T+1+hrand(Math.floor(T),e.seed^3)*2}
  if(e.onStage&&e.state==='perform')y+=STAGE.h;
@@ -1605,6 +1606,16 @@ function startGossip(seed,T){const mem=[seed,...[...ents.values()].filter(o=>o!=
  let cx=seed.x,cz=seed.z;const d=Math.hypot(cx,cz)||1;const rr=clamp(d,6.5,13.5);cx=cx/d*rr;cz=cz/d*rr;
  const g={cx,cz,mem,t:0,ph:0,nt:0};mem.forEach((e,i)=>{const a=i/mem.length*Math.PI*2+0.3,R=0.95+mem.length*0.08;e.state='gossip';e.gos=g;e.spot=[cx+Math.sin(a)*R,cz+Math.cos(a)*R]});gossip=g;
  const beg=[...ents.values()].find(o=>o.c.cls==='beggar'&&o.state==='free'&&o.r&&Math.hypot(o.x-cx,o.z-cz)<14);if(beg&&hrand(Math.floor(T),beg.seed^0x9a)<0.6){g.beg=beg;g.begAt=4+hrand(Math.floor(T),7)*5}return true}
+let BEGCH=null;const BEGL=['나도 껴줘ㅠㅠ','같이 놀자ㅠㅠ','기다려~ㅠㅠ','나도 껴줘ㅠㅠㅠ'],FLEEL=['도망가!','따라오지 마!','으악 온다!','아 뭔 냄새야!'];
+function startBegChase(B,mem){if(!B||!ents.has(B.id)||BEGCH)return;const ms=mem.filter(e=>ents.has(e.id)&&(e.state==='scatter'||e.state==='free'));if(!ms.length)return;
+ BEGCH={b:B,mem:ms,t:0,dur:8+Math.random()*4,bs:0.6};B.state='begchase';B.spot=[B.x,B.z];for(const e of ms){e.state='begflee';e.spot=[e.x,e.z];e.fsay=1+Math.random()*2}}
+function stepBegChase(dt){const c=BEGCH;if(!c)return;c.t+=dt;const B=c.b;c.mem=c.mem.filter(e=>ents.has(e.id)&&e.state==='begflee');
+ if(!ents.has(B.id)||B.state!=='begchase'||!c.mem.length||c.t>c.dur){const now=Date.now()/1000;if(ents.has(B.id)&&B.state==='begchase'){B.state='free';B.cool=now+6;bubble(B,'흑… 아무도 안 껴주네');later(2.2,()=>{if(ents.has(B.id))bubble(B,'')})}for(const e of c.mem){e.state='free';e.cool=now+4;bubble(e,'')}BEGCH=null;return}
+ let tg=null,bd=1e9;for(const e of c.mem){const d=Math.hypot(e.x-B.x,e.z-B.z);if(d<bd){bd=d;tg=e}}B.spot=[tg.x,tg.z];
+ c.bs-=dt;if(c.bs<=0){bubble(B,BEGL[Math.floor(Math.random()*BEGL.length)]);c.bs=1.8}
+ for(const e of c.mem){let dx=e.x-B.x,dz=e.z-B.z;const d=Math.hypot(dx,dz)||1;dx/=d;dz/=d;const rr=Math.hypot(e.x,e.z)||1,tx=-e.z/rr,tz=e.x/rr,sg=(e.seed&1)?1:-1;let wx=dx+tx*sg*0.7,wz=dz+tz*sg*0.7;const wl=Math.hypot(wx,wz)||1;
+  let sx=e.x+wx/wl*3,sz=e.z+wz/wl*3;const r2=Math.hypot(sx,sz);if(r2>14.8){sx*=14.8/r2;sz*=14.8/r2}if(r2<5.6){sx*=5.6/(r2||1);sz*=5.6/(r2||1)}e.spot=[sx,sz];
+  e.fsay-=dt;if(e.fsay<=0){bubble(e,FLEEL[Math.floor(Math.random()*FLEEL.length)]);e.fsay=1.6+Math.random()*2;const E=e;later(1.2,()=>{if(ents.has(E.id)&&E.state==='begflee')bubble(E,'')})}}}
 function endGossip(g,scat,from){for(const e of g.mem){bubble(e,'');e.gos=null;if(e.state!=='gossip')continue;
   if(scat){let dx=e.x-from.x,dz=e.z-from.z;const d=Math.hypot(dx,dz)||1;let sx=e.x+dx/d*5,sz=e.z+dz/d*5;const r=Math.hypot(sx,sz);if(r>15){sx*=15/r;sz*=15/r}e.state='scatter';e.spot=[sx,sz];e.scatT=2.4}else{e.state='free';e.cool=Date.now()/1000+4}}
  if(g.beg&&g.beg.state==='begwalk'){g.beg.state='free';g.beg.cool=Date.now()/1000+5}gossip=null;gosNext=Date.now()/1000+70+Math.random()*40}
@@ -1613,7 +1624,7 @@ function stepGossip(dt,T){const g=gossip;if(!g)return;g.t+=dt;g.mem=g.mem.filter
  if(g.beg&&g.t>g.begAt&&g.beg.state==='free'){g.beg.state='begwalk';g.beg.spot=[g.cx,g.cz]}
  if(g.beg&&g.beg.state==='begwalk')g.beg.spot=[g.cx+Math.sin(g.t)*0.2,g.cz];
  const bg=[...ents.values()].find(o=>o.c.cls==='beggar'&&o.r&&o.state!=='battle'&&Math.hypot(o.x-g.cx,o.z-g.cz)<3.1);
- if(bg){for(const e of g.mem){bubble(e,'(!)');}const B=bg;const m=g.mem.slice();later(0.7,()=>{const tk=m.filter(e=>e.state==='gossip');endGossip(g,true,B);const SM=['아 뭔 냄새야','도망가!','아 뭔 냄새야?!','도망가!!'];tk.forEach((e,i)=>{if(!ents.has(e.id))return;bubble(e,SM[(i+Math.floor(Math.random()*4))%4]);later(1.8,()=>{if(ents.has(e.id))bubble(e,'')})});if(ents.has(B.id))floatText(B,'…왜들 그래','#c8c4d8')});g.mem.forEach(e=>e.state==='gossip'&&(e.spot=[e.x,e.z]));gossip=Object.assign(g,{t:-1e9});gossip=null;return}
+ if(bg){for(const e of g.mem){bubble(e,'(!)');}const B=bg;const m=g.mem.slice();later(0.7,()=>{const tk=m.filter(e=>e.state==='gossip');endGossip(g,true,B);const SM=['아 뭔 냄새야','도망가!','아 뭔 냄새야?!','도망가!!'];tk.forEach((e,i)=>{if(!ents.has(e.id))return;bubble(e,SM[(i+Math.floor(Math.random()*4))%4]);later(1.8,()=>{if(ents.has(e.id)&&!BEGCH)bubble(e,'')})});startBegChase(B,tk);if(ents.has(B.id))floatText(B,'…왜들 그래','#c8c4d8')});g.mem.forEach(e=>e.state==='gossip'&&(e.spot=[e.x,e.z]));gossip=Object.assign(g,{t:-1e9});gossip=null;return}
  if(g.t>16)endGossip(g)}
 function throwStone(o,b){o.throwT=0.9;o.throwAt=b;o.atkT=0.45;later(0.22,()=>{if(!o.r||!b.r)return;const m=mesh(new THREE.DodecahedronGeometry(0.09,0),M('#8a8680'),o.x,1.1,o.z);scene.add(m);stones.push({m,ax:o.x,az:o.z,b,t:0})})}
 function shootProj(a,b,kind,done){const g=new THREE.Group();
@@ -3047,7 +3058,7 @@ function frame(now){const dt=Math.min(0.05,(now-last)/1000);last=now;const T=Dat
  detT-=dt;if(detT<=0){detect(T);detT=0.25}
  for(const b of[...battles])stepBattle(b,dt);
  for(const c of[...chats])stepChat(c,dt);
- stepStones(dt);stepProps(T);for(const th of[...thefts])stepTheft(th,dt,T);stepGossip(dt,T);for(const sw of SWINGS){const o=sw.swing;const occ=sw.seats.some(q=>q.occ&&ents.has(q.occ)&&ents.get(q.occ).state==='sit');o.amp+=((occ?0.16:0.025)-o.amp)*Math.min(1,dt*0.8);o.th=Math.sin(T*1.7+o.ph)*o.amp;o.pv.rotation.x=o.th}for(const e of ents.values())if(e.state==='audience'&&(!e.perfB||!ents.has(e.perfB.id)||(e.perfB.state!=='perform'&&e.perfB.state!=='stagewalk'))){e.state='free';e.perfB=null}
+ stepStones(dt);stepProps(T);for(const th of[...thefts])stepTheft(th,dt,T);stepGossip(dt,T);stepBegChase(dt);for(const sw of SWINGS){const o=sw.swing;const occ=sw.seats.some(q=>q.occ&&ents.has(q.occ)&&ents.get(q.occ).state==='sit');o.amp+=((occ?0.16:0.025)-o.amp)*Math.min(1,dt*0.8);o.th=Math.sin(T*1.7+o.ph)*o.amp;o.pv.rotation.x=o.th}for(const e of ents.values())if(e.state==='audience'&&(!e.perfB||!ents.has(e.perfB.id)||(e.perfB.state!=='perform'&&e.perfB.state!=='stagewalk'))){e.state='free';e.perfB=null}
  for(let i=timers.length-1;i>=0;i--){timers[i].t-=dt;if(timers[i].t<=0){const f=timers[i].fn;timers.splice(i,1);f()}}
  for(let i=fx.length-1;i>=0;i--){const f=fx[i];f.t+=dt;f.m.scale.setScalar(1+f.t*6);f.m.material.opacity=Math.max(0,1-f.t/0.5);if(f.t>0.5){scene.remove(f.m);f.m.geometry.dispose();f.m.material.dispose();fx.splice(i,1)}}
  fountain.orb.rotation.y+=dt;fountain.orb.position.y=2.85+Math.sin(T*2)*0.08;
