@@ -3149,6 +3149,7 @@ function frame(now){const dt=Math.min(0.05,(now-last)/1000);last=now;const T=Dat
  requestAnimationFrame(frame)}
 
 /* ---------- panel / card ---------- */
+function recRecent(id){let w=0,l=0;for(const b of S.battles.values()){if(b.a!==id&&b.b!==id)continue;if(b.win===id)w++;else l++}return[w,l]}
 function record(id){const c=S.chars.get(id);if(c&&c._wl)return[c.wins||0,c.losses||0];let w=0,l=0;for(const b of S.battles.values()){if(b.a!==id&&b.b!==id)continue;if(b.win===id)w++;else l++}return[w,l]}
 function faceEl(c,cls){if(c.face){const i=el('img',cls);i.alt='';i.src=c.face;return i}const cvs=drawCartoon(c.skin,c.feat,48,44);const i=el('img',cls);i.alt='';i.src=cvs.toDataURL();return i}
 function refreshAll(){syncEnts();renderPanel();$('#pop').textContent=!S.code?'광장을 고르는 중':S.chars.size?`주민 ${S.chars.size}명`:'아직 주민이 없어요';$('#bMe').textContent=meId&&S.chars.has(meId)?S.chars.get(meId).nick:'내 캐릭터';$('#bNew').disabled=!S.canWrite||!S.code;
@@ -3157,8 +3158,9 @@ const boardG=window.__board;const btag=el('div','btag','광장 게시판');btag.
 let bdTab='rank';
 function openBoard(t){bdTab=t||bdTab;$('#mBoard').hidden=false;renderBoard()}
 function renderBoard(){if($('#mBoard').hidden)return;$('#bdRank').setAttribute('aria-selected',bdTab==='rank');$('#bdLog').setAttribute('aria-selected',bdTab==='log');const B=$('#bdBody');B.textContent='';
- if(bdTab==='rank'){const list=[...S.chars.values()].map(c=>{const r=record(c.id);return{c,w:r[0],l:r[1],rate:r[0]+r[1]?r[0]/(r[0]+r[1]):0}}).sort((a,b)=>((b.w+b.l>0)-(a.w+a.l>0))||b.rate-a.rate||b.w-a.w||a.l-b.l||a.c.nick.localeCompare(b.c.nick));
+ if(bdTab==='rank'){const list=[...S.chars.values()].map(c=>{const r=recRecent(c.id);return{c,w:r[0],l:r[1],rate:r[0]+r[1]?r[0]/(r[0]+r[1]):0}}).sort((a,b)=>((b.w+b.l>0)-(a.w+a.l>0))||b.rate-a.rate||b.w-a.w||a.l-b.l||a.c.nick.localeCompare(b.c.nick));
   if(!list.length){B.append(el('div','empty','아직 주민이 없어요.'));return}
+  B.append(el('div','empty',`최근 ${S.battles.size}전투 기준 순위예요`));
   list.forEach((x,i)=>{const row=el('div','rk');const nm=el('div');nm.append(el('b',null,x.c.nick),el('small',null,(x.c.real?x.c.real+' · ':'')+CLS[x.c.cls].n));const wl=el('div','wl',x.w+x.l?`승률 ${Math.round(x.rate*100)}%`:'기록 없음');wl.append(el('em',null,`${x.w}승 ${x.l}패`));
    row.append(el('div','n',String(i+1)),faceEl(x.c),nm,wl);row.style.cursor='pointer';row.onclick=()=>{$('#mBoard').hidden=true;openCard(x.c.id)};B.append(row)})}
  else{const bs=[...S.battles.values()].sort((a,b)=>b.at-a.at).slice(0,50);if(!bs.length){B.append(el('div','empty','아직 전투가 없어요. 주민끼리 마주치면 가끔 싸움이 붙어요.'));return}
