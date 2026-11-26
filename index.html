@@ -56,6 +56,8 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .brand span{color:var(--mute);font-size:13px}
 .acts{display:flex;gap:8px;flex-wrap:wrap}
 .acts button{box-shadow:0 4px 0 rgba(27,22,48,.18)}
+#bSet{font-size:20px;min-width:44px;padding:0 10px}
+#sList .row{cursor:default}#sList .row .danger{min-height:36px;padding:0 12px;flex:none}
 #panel{position:fixed;right:10px;top:76px;bottom:10px;width:310px;background:var(--panel);border-radius:16px;display:flex;flex-direction:column;box-shadow:0 6px 0 rgba(27,22,48,.18);overflow:hidden}
 #panel.hide{display:none}
 body.inhome #tags,body.inhome #panel,body.inhome #card,body.inhome header.top,body.inhome #note{display:none!important}
@@ -191,6 +193,7 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:30px}
     <button id="bGate">광장 이동</button>
     <button id="bPanel" aria-expanded="true">주민·기록</button>
     <button id="bPix" title="PS1 화질 켜고 끄기">화질</button>
+    <button id="bSet" title="광장 설정" aria-label="광장 설정">⚙︎</button>
   </div>
 </header>
 
@@ -259,6 +262,24 @@ input[type=range]{width:100%;accent-color:var(--acc);min-height:30px}
 </div>
 
 <!-- plaza gate -->
+<div class="modal" id="mSet" hidden>
+  <div class="sheet" role="dialog" aria-labelledby="sTitle">
+    <div class="sh-h"><h2 id="sTitle">광장 설정</h2><button data-close>닫기</button></div>
+    <div class="stack" id="sLock">
+      <p class="sm">광장을 만들 때 정한 주인장 비밀번호를 넣으면 광장 이름을 바꾸고 주민을 삭제할 수 있어요.</p>
+      <label class="fld">주인장 비밀번호<input id="sPw" type="password" maxlength="20" autocomplete="off"></label>
+      <button id="sOk" class="sec">확인</button><span id="sErr" class="pinerr"></span>
+    </div>
+    <div class="stack" id="sAdmin" hidden>
+      <label class="fld">광장 이름<input id="sName" maxlength="20" autocomplete="off"></label>
+      <button id="sSaveName" class="sec">이름 저장</button>
+      <div class="or">주민 삭제</div>
+      <p class="sm">삭제 버튼을 두 번 누르면 지워져요. 되돌릴 수 없어요.</p>
+      <div class="list" id="sList"></div>
+    </div>
+  </div>
+</div>
+
 <div class="modal" id="mGate" hidden>
   <div class="sheet" role="dialog" aria-labelledby="gTitle">
     <div class="sh-h"><h2 id="gTitle">광장 입장</h2><button data-close id="gClose">닫기</button></div>
@@ -2701,6 +2722,27 @@ async function deletePlaza(){const err=$('#gErr');err.textContent='';const code=
  b.disabled=false;ls.set('plaza-recent',recent().filter(r=>r.code!==code));ls.set('plaza-me-'+code,null);
  for(const u of S.unsubs)u();S.unsubs=[];S.chars.clear();S.battles.clear();S.code=null;refreshAll();history.replaceState(null,'',location.pathname+location.search);toast('광장을 삭제했어요.');openGate()}
 $('#gDel').onclick=deletePlaza;
+let setOK=null;
+function plazaPh(){return S.local?ls.get('plaza-ph-'+S.code):(S.pmeta&&S.pmeta.ph)}
+function openSet(){if(!S.code){toast('먼저 광장에 들어가 주세요.');return}const m=$('#mSet');m.hidden=false;$('#sErr').textContent='';$('#sPw').value='';
+ const ok=setOK===S.code;$('#sLock').hidden=ok;$('#sAdmin').hidden=!ok;if(ok)renderSet();else setTimeout(()=>$('#sPw').focus(),50)}
+function renderSet(){$('#sName').value=S.pname||'';const box=$('#sList');box.textContent='';
+ const list=[...S.chars.values()].sort((a,b)=>a.nick.localeCompare(b.nick));
+ if(!list.length)box.append(el('div','empty','주민이 없어요.'));
+ for(const c of list){const r=el('div','row');const nm=el('span','nm');nm.append(el('b',null,c.nick),el('small',null,(c.real?c.real+' · ':'')+CLS[c.cls].n));
+  const d=el('button','danger','삭제');d.onclick=async()=>{if(!d.classList.contains('sure')){d.classList.add('sure');d.textContent='정말 삭제?';setTimeout(()=>{if(d.isConnected){d.classList.remove('sure');d.textContent='삭제'}},3000);return}
+   if(typeof isFighting==='function'&&isFighting(c.id)){toast('전투 중이라 끝난 뒤에 지울 수 있어요.');return}
+   d.disabled=true;if(await delChar(c.id)){if(meId===c.id){meId=null;ls.set('plaza-me-'+S.code,null)}if(!$('#card').hidden)$('#card').hidden=true;toast(c.nick+' 삭제했어요.');renderSet()}else d.disabled=false};
+  r.append(faceEl(c),nm,d);box.append(r)}}
+$('#bSet').onclick=openSet;
+$('#sOk').onclick=()=>{const ph=plazaPh();const pw=$('#sPw').value;
+ if(!ph){$('#sErr').textContent='이 광장은 주인장 비밀번호 없이 만들어져서 설정을 바꿀 수 없어요.';return}
+ if(String(hash32(S.code+':pw:'+pw))!==ph){$('#sErr').textContent='비밀번호가 맞지 않아요.';$('#sPw').select();return}
+ setOK=S.code;$('#sLock').hidden=true;$('#sAdmin').hidden=false;renderSet()};
+$('#sPw').addEventListener('keydown',e=>{if(e.key==='Enter')$('#sOk').click()});
+$('#sSaveName').onclick=async()=>{const n=$('#sName').value.trim().slice(0,20);if(!n){toast('이름을 입력해 주세요.');return}if(setOK!==S.code)return;const b=$('#sSaveName');b.disabled=true;
+ try{if(!S.local)await S.db.doc(P()).update({name:n});S.pname=n;$('#pName').textContent=n;remember(S.code,n);toast('광장 이름을 바꿨어요.')}catch(e){writeErr(e)}b.disabled=false};
+
 $('#gNew').onclick=()=>createPlaza($('#gName').value);$('#gName').onkeydown=e=>{if(e.key==='Enter')createPlaza($('#gName').value)};
 $('#bGate').onclick=openGate;
 $('#bCode').onclick=async()=>{if(!S.code){openGate();return}try{await navigator.clipboard.writeText(S.code);toast('광장 코드 '+S.code+' 복사했어요')}catch(e){toast('광장 코드: '+S.code)}};
