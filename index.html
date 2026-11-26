@@ -1352,7 +1352,7 @@ function cleanChar(id,d){if(!d||typeof d!=='object')return null;const s=(v,n)=>t
  const cls=CLS[d.cls]?d.cls:'adventurer';const face=typeof d.face==='string'&&/^data:image\/(jpeg|png);base64,/.test(d.face)&&d.face.length<250000?d.face:'';
  const pick=(v,arr,df)=>arr.includes(v)?v:df;
  return{id,nick:s(d.nick,12)||'이름없음',real:s(d.real,12),cls,outfit:num(d.outfit,0,2,0)|0,hair:pick(d.hair,HAIRS.map(h=>h[0]),'short'),hairColor:/^#[0-9a-f]{6}$/i.test(d.hairColor)?d.hairColor:HAIRC[1],
-  skin:/^#[0-9a-f]{6}$/i.test(d.skin)?d.skin:SKINS[1],h:num(d.h,0.85,1.2,1),w:num(d.w,0.75,1.4,1),face,feat:cleanFeat(d.feat),line:s(d.line,40),pin:s(d.pin,20),owner:s(d.owner,200),at:num(d.at,0,9e15,0)}}
+  skin:/^#[0-9a-f]{6}$/i.test(d.skin)?d.skin:SKINS[1],h:num(d.h,0.85,1.2,1),w:num(d.w,0.75,1.4,1),face,feat:cleanFeat(d.feat),line:s(d.line,40),pin:s(d.pin,20),owner:s(d.owner,200),at:num(d.at,0,9e15,0),wins:num(d.wins,0,1e9,0),losses:num(d.losses,0,1e9,0),_wl:d.wins!=null}}
 function cleanBattle(id,d){if(!d||typeof d!=='object')return null;return{id,a:String(d.a||''),b:String(d.b||''),win:String(d.win||''),at:+d.at||0,turns:+d.turns||0,kind:d.kind==='duel'?'duel':'plaza',an:String(d.an||'').slice(0,12),bn:String(d.bn||'').slice(0,12)}}
 const P=()=>'plazas/'+S.code;
 function saveLocal(){if(S.code)ls.set('plaza-local-'+S.code,{chars:[...S.chars.values()],battles:[...S.battles.values()].slice(-300)})}
@@ -1380,13 +1380,13 @@ function enterPlaza(code){
  S.chars.clear();S.battles.clear();S.code=code;S.pname='';S.loaded=false;S.missing=false;pruned=false;meId=ls.get('plaza-me-'+code);$('#card').hidden=true;cam.follow=null;
  $('#pName').textContent='마법 광장';$('#bCode').textContent='코드 '+code;remember(code,(recent().find(r=>r.code===code)||{}).name);
  setNote();refreshAll();
- if(S.local){const L=ls.get('plaza-local-'+code)||{};for(const c of L.chars||[]){const x=cleanChar(c.id,c);if(x)S.chars.set(x.id,x)}for(const b of L.battles||[]){const x=cleanBattle(b.id,b);if(x)S.battles.set(x.id,x)}
+ if(S.local){const L=ls.get('plaza-local-'+code)||{};for(const c of L.chars||[]){const x=cleanChar(c.id,c);if(x)S.chars.set(x.id,x)}for(const b of L.battles||[]){const x=cleanBattle(b.id,b);if(x)S.battles.set(x.id,x)}for(const c of S.chars.values())if(!c._wl){let w=0,l=0;for(const b of S.battles.values()){if(b.a!==c.id&&b.b!==c.id)continue;if(b.win===c.id)w++;else l++}c.wins=w;c.losses=l;c._wl=true}
   const r=recent().find(r=>r.code===code);if(r&&r.name){S.pname=r.name;$('#pName').textContent=r.name}S.loaded=true;refreshAll();return}
  const my=code;const tm=setTimeout(()=>{if(!S.loaded&&S.code===my)$('#note').textContent='공유 광장에 아직 연결되지 않았어요. 잠시만 기다려 주세요.'},10000);
  S.unsubs.push(S.db.doc(P()).onSnapshot(d=>{if(S.code!==my)return;if(d.exists){S.pmeta=d.data();const n=d.data().name;S.missing=false;if(typeof n==='string'&&n){S.pname=n.slice(0,20);$('#pName').textContent=S.pname;remember(my,S.pname)}}else if(!d.metadata.fromCache)S.missing=true;setNote()},()=>{}));
- S.unsubs.push(S.db.collection(P()+'/chars').onSnapshot(snap=>{if(S.code!==my)return;clearTimeout(tm);S.loaded=true;setNote();S.chars.clear();for(const d of snap.docs){const x=cleanChar(d.id,d.data());if(x)S.chars.set(x.id,x)}refreshAll()},
+ S.unsubs.push(S.db.collection(P()+'/chars').onSnapshot(snap=>{if(S.code!==my)return;clearTimeout(tm);S.loaded=true;setNote();S.chars.clear();for(const d of snap.docs){const x=cleanChar(d.id,d.data());if(x)S.chars.set(x.id,x)}refreshAll();migrateWL()},
   e=>{clearTimeout(tm);S.loaded=true;$('#note').textContent='광장 정보를 불러오지 못했어요 ('+(e&&e.code||'오류')+').';refreshAll()}));
- S.unsubs.push(S.db.collection(P()+'/battles').onSnapshot(snap=>{if(S.code!==my)return;S.battles.clear();for(const d of snap.docs){const x=cleanBattle(d.id,d.data());if(x)S.battles.set(x.id,x)}renderPanel();prune()},()=>{}))}
+ S.unsubs.push(S.db.collection(P()+'/battles').orderBy('at','desc').limit(50).onSnapshot(snap=>{if(S.code!==my)return;S.battles.clear();for(const d of snap.docs){const x=cleanBattle(d.id,d.data());if(x)S.battles.set(x.id,x)}renderPanel();prune()},()=>{}))}
 function genCode(){const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';const r=new Uint32Array(6);crypto.getRandomValues(r);for(const v of r)s+=A[v%A.length];return s}
 async function joinPlaza(raw){const err=$('#gErr');err.textContent='';if(!S.ready){err.textContent='아직 연결하는 중이에요.';return}const code=raw.trim().toUpperCase();
  if(!CODE_RE.test(code)){err.textContent='코드는 영문·숫자 4~8자예요.';return}
@@ -1405,14 +1405,21 @@ function openGate(){const m=$('#mGate');m.hidden=false;$('#gClose').hidden=!S.co
  if(l.length){box.append(el('div','fld','최근 들어간 광장'));const g=el('div','opp');for(const r of l){const b=el('button','opt');b.append(el('span',null,r.name||'마법 광장'),el('small',null,r.code));b.onclick=()=>joinPlaza(r.code);g.append(b)}box.append(g)}
  if(!S.ready){$('#gErr').textContent='연결하는 중…'}setTimeout(()=>$('#gCode').focus(),50)}
 function writeErr(e){if(e&&e.code==='permission-denied'){toast('저장이 거부됐어요. Firebase 보안 규칙을 확인해 주세요.');return}if(e&&e.code==='invalid_argument'){S.canWrite=false;toast('저장 권한이 없어요. 소유자에게 Contributor 이상 권한을 받아 주세요.')}else if(e&&e.code==='quota_exceeded')toast('저장 공간이 가득 찼어요.');else toast('저장하지 못했어요. 잠시 뒤 다시 시도해 주세요.')}
-async function putChar(c){const{id,...d}=c;if(S.local){S.chars.set(id,c);saveLocal();refreshAll();return true}
- try{await S.db.doc(P()+'/chars/'+id).set(d);return true}catch(e){writeErr(e);return false}}
+async function putChar(c){const{id,_wl,...d}=c;delete d.wins;delete d.losses;if(S.local){const o=S.chars.get(id);S.chars.set(id,Object.assign({},c,{wins:o?o.wins||0:0,losses:o?o.losses||0:0,_wl:true}));saveLocal();refreshAll();return true}
+ try{await S.db.doc(P()+'/chars/'+id).set(d,{merge:true});return true}catch(e){writeErr(e);return false}}
 async function delChar(id){if(S.local){S.chars.delete(id);saveLocal();refreshAll();return true}try{await S.db.doc(P()+'/chars/'+id).delete();return true}catch(e){writeErr(e);return false}}
 function newId(){if(S.db)return S.db.collection(P()+'/chars').doc().id;return'L'+Date.now().toString(36)+Math.floor(Math.random()*1e6).toString(36)}
 async function putBattle(id,d){if(S.battles.has(id)||!S.canWrite)return;
- if(S.local){S.battles.set(id,Object.assign({id},d));saveLocal();renderPanel();return}
+ const W=d.win,L=d.win===d.a?d.b:d.a;
+ if(S.local){S.battles.set(id,Object.assign({id},d));const cw=S.chars.get(W),cl=S.chars.get(L);if(cw)cw.wins=(cw.wins||0)+1;if(cl)cl.losses=(cl.losses||0)+1;saveLocal();renderPanel();return}
  await new Promise(r=>setTimeout(r,Math.random()*2500));if(S.battles.has(id)||!S.code)return;
- try{await S.db.doc(P()+'/battles/'+id).set(d)}catch(e){if(e&&e.code==='invalid_argument')S.canWrite=false}}
+ try{const ref=S.db.doc(P()+'/battles/'+id);const FV=window.firebase&&firebase.firestore&&firebase.firestore.FieldValue;
+  if(S.db.runTransaction&&FV){await S.db.runTransaction(async tx=>{const sn=await tx.get(ref);if(sn.exists)return;const cw=S.chars.has(W)?await tx.get(S.db.doc(P()+'/chars/'+W)):null,cl=S.chars.has(L)?await tx.get(S.db.doc(P()+'/chars/'+L)):null;
+    tx.set(ref,d);if(cw&&cw.exists)tx.update(cw.ref,{wins:FV.increment(1)});if(cl&&cl.exists)tx.update(cl.ref,{losses:FV.increment(1)})})}
+  else await ref.set(d)}catch(e){if(e&&e.code==='invalid_argument')S.canWrite=false}}
+let migrating=false;async function migrateWL(){if(migrating||!S.db||S.local||!S.canWrite||!S.code)return;const miss=[...S.chars.values()].filter(c=>!c._wl);if(!miss.length)return;const code=S.code;if(ls.get('plaza-mig-'+code)===miss.map(c=>c.id).join(','))return;migrating=true;
+ try{const snap=await S.db.collection(P()+'/battles').get();if(S.code!==code)return;const cnt={};for(const d of snap.docs){const b=d.data()||{};const w=String(b.win||''),l=w===b.a?String(b.b||''):String(b.a||'');(cnt[w]=cnt[w]||[0,0])[0]++;(cnt[l]=cnt[l]||[0,0])[1]++}
+  for(const c of miss){const v=cnt[c.id]||[0,0];try{await S.db.doc(P()+'/chars/'+c.id).set({wins:v[0],losses:v[1]},{merge:true})}catch(e){}}ls.set('plaza-mig-'+code,miss.map(c=>c.id).join(','))}catch(e){}finally{migrating=false}}
 let pruned=false;async function prune(){if(pruned||!S.db||!S.canWrite)return;pruned=true;const old=[...S.battles.values()].filter(b=>Date.now()-b.at>30*864e5).slice(0,20);
  for(const b of old){try{await S.db.doc(P()+'/battles/'+b.id).delete()}catch(e){break}}}
 
@@ -3142,7 +3149,7 @@ function frame(now){const dt=Math.min(0.05,(now-last)/1000);last=now;const T=Dat
  requestAnimationFrame(frame)}
 
 /* ---------- panel / card ---------- */
-function record(id){let w=0,l=0;for(const b of S.battles.values()){if(b.a!==id&&b.b!==id)continue;if(b.win===id)w++;else l++}return[w,l]}
+function record(id){const c=S.chars.get(id);if(c&&c._wl)return[c.wins||0,c.losses||0];let w=0,l=0;for(const b of S.battles.values()){if(b.a!==id&&b.b!==id)continue;if(b.win===id)w++;else l++}return[w,l]}
 function faceEl(c,cls){if(c.face){const i=el('img',cls);i.alt='';i.src=c.face;return i}const cvs=drawCartoon(c.skin,c.feat,48,44);const i=el('img',cls);i.alt='';i.src=cvs.toDataURL();return i}
 function refreshAll(){syncEnts();renderPanel();$('#pop').textContent=!S.code?'광장을 고르는 중':S.chars.size?`주민 ${S.chars.size}명`:'아직 주민이 없어요';$('#bMe').textContent=meId&&S.chars.has(meId)?S.chars.get(meId).nick:'내 캐릭터';$('#bNew').disabled=!S.canWrite||!S.code;
  if(!$('#card').hidden&&cardId)openCard(cardId,true)}
@@ -3337,7 +3344,7 @@ async function deletePlaza(){const err=$('#gErr');err.textContent='';const code=
  const b=$('#gDel');if(!b.classList.contains('sure')){b.classList.add('sure');b.textContent='정말 지울까요? 한 번 더 누르면 삭제돼요';return}
  b.disabled=true;
  try{if(S.local){ls.set('plaza-local-'+code,null);ls.set('plaza-ph-'+code,null)}
-  else{const ids=[...[...S.chars.keys()].map(id=>P()+'/chars/'+id),...[...S.battles.keys()].map(id=>P()+'/battles/'+id)];
+  else{let bids=[...S.battles.keys()];try{const bs=await S.db.collection(P()+'/battles').get();bids=bs.docs.map(d=>d.id)}catch(e){}const ids=[...[...S.chars.keys()].map(id=>P()+'/chars/'+id),...bids.map(id=>P()+'/battles/'+id)];
    for(let i=0;i<ids.length;i+=400){const bt=S.db.batch();for(const pth of ids.slice(i,i+400))bt.delete(S.db.doc(pth));await bt.commit()}
    await S.db.doc(P()).delete()}}
  catch(e){b.disabled=false;err.textContent='삭제하지 못했어요. 보안 규칙이 최신인지 확인해 주세요.';return}
