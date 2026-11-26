@@ -1480,10 +1480,11 @@ function updEnt(e,dt,T){const r=e.r;if(!r)return;let tx,tz;
  if(e.state==='sneak'&&e.reachT>0){e.reachT-=dt;r.arms[0].rotation.x=r.arms[1].rotation.x=-1.3+Math.sin(T*14)*0.15;rx+=0.2}else if(e.state==='sneak'&&sp>0.1){rx+=0.25}
  if(e.state==='gossip'&&sp<0.1){const k=T*3+e.seed;if(Math.sin(k*0.7)>0.3)r.arms[1].rotation.x=-0.9+Math.sin(k*3)*0.4;y+=Math.abs(Math.sin(k))*0.02}
  if(e.state==='chase'&&sp>0.5)r.arms[1].rotation.x=-2.6+Math.sin(T*10)*0.3;
+ if(e.state==='chat'&&e.rival&&sp<0.3){const k=T*16+e.seed;r.arms[0].rotation.x=-1.7+Math.sin(k)*0.9;r.arms[1].rotation.x=-1.7+Math.sin(k+Math.PI)*0.9;y+=Math.abs(Math.sin(T*12+e.seed))*0.05;swx+=(Math.random()-0.5)*0.05;swz+=(Math.random()-0.5)*0.05}
  if(e.state==='begchase'){r.arms[0].rotation.x=-1.5+Math.sin(T*9)*0.25;r.arms[1].rotation.x=-1.5+Math.sin(T*9+1.5)*0.25}
  if(e.c.cls==='beggar')flies(e,r,T);
  {const st=e.state,arr=sp<0.15;let az=0;
-  if(st==='pray'&&arr){r.arms[0].rotation.x=r.arms[1].rotation.x=-1.25;az=0.38;rx+=0.14;if(e.faceFix!=null)e.face=e.faceFix}
+  if(st==='pray'&&arr){r.arms[0].rotation.x=r.arms[1].rotation.x=-1.25;az=0.38;rx+=e.bowPope?0.5:0.14;if(e.faceFix!=null)e.face=e.faceFix}
   else if((st==='wguest'||st==='waitflower'||st==='wedcouple')&&e.faceFix!=null&&arr)e.face=e.faceFix;
   if(st==='wguest'&&arr&&Math.hypot(e.x-e.spot[0],e.z-e.spot[1])<0.15){if(e.wsit){r.legs[0].rotation.x=r.legs[1].rotation.x=-1.45;y+=0.47-(r.hipY||0.35)}const cl=Math.sin(T*13+e.seed)>-0.2||!e.wsit;if(cl){r.arms[0].rotation.x=r.arms[1].rotation.x=-1.15;az=0.2+Math.abs(Math.sin(T*12+e.seed))*0.35}}
   if(st==='wedcouple'&&arr){r.arms[0].rotation.x=-0.5;r.arms[1].rotation.x=-0.5;y+=Math.max(0,Math.sin(T*3+e.seed))*0.04}
@@ -1494,9 +1495,14 @@ function updEnt(e,dt,T){const r=e.r;if(!r)return;let tx,tz;
  r.g.position.set(e.x+Math.sin(e.head)*lunge+Math.cos(e.head)*side+swx,y,e.z+Math.cos(e.head)*lunge-Math.sin(e.head)*side+swz);r.g.rotation.set(rx,e.head+ry,0,'YXZ')}
 
 /* ---------- battles ---------- */
-function simBattle(id,A,B){const r=rng(hash32(id));const af=affOf(A,B),am=[af>0?AFF:af<0?1/AFF:1,af>0?1/AFF:af<0?AFF:1];const s=[statsOf(A),statsOf(B)],hp=[s[0].hp,s[1].hp],st=[{stun:0,sh:0,po:0,bf:1},{stun:0,sh:0,po:0,bf:1}],ev=[];
+const noHeal=c=>c.cls==='demon'||c.cls==='rogue'||c.cls==='warlock'||(c.cls==='archer'&&c.outfit===2)||(c.cls==='summoner'&&c.outfit===1);
+function assistsFor(id,F,W){const out=[];const ok=[!noHeal(F[0]),!noHeal(F[1])];
+ W.forEach((w,i)=>{const c=w.c,h=hash32(id+':'+w.id);if((c.cls==='paladin'||c.cls==='cleric')&&(ok[0]||ok[1])&&(h%100)<40)out.push({k:'heal',by:w.id,ok,n:2+(h>>>8)%6});
+  if(c.cls==='warlock'&&c.outfit===1){const dm=F[0].cls==='demon'?0:F[1].cls==='demon'?1:-1;if(dm>=0&&(h%100)<75)out.push({k:'hit',by:w.id,tg:1-dm,n:1+(h>>>8)%5})}});return out}
+function simBattle(id,A,B,AS){const r=rng(hash32(id));AS=AS||[];const af=affOf(A,B),am=[af>0?AFF:af<0?1/AFF:1,af>0?1/AFF:af<0?AFF:1];const s=[statsOf(A),statsOf(B)],hp=[s[0].hp,s[1].hp],st=[{stun:0,sh:0,po:0,bf:1},{stun:0,sh:0,po:0,bf:1}],ev=[];
  let cur=(s[0].spd+r()*8>=s[1].spd+r()*8)?0:1,n=0;
- while(n<40&&hp[0]>0&&hp[1]>0){const o=1-cur,me=s[cur],SS=st[cur],T=st[o];
+ while(n<40&&hp[0]>0&&hp[1]>0){for(const a of AS)if(!a.done&&a.n===n){a.done=1;if(a.k==='heal'){let t=a.tg;if(t==null){const c=[0,1].filter(i=>a.ok[i]);if(!c.length)continue;t=c.sort((x,y)=>hp[x]/s[x].hp-hp[y]/s[y].hp)[0]}const h=Math.max(1,Math.round(s[t].hp*0.12));hp[t]=Math.min(s[t].hp,hp[t]+h);ev.push({t:'assist',k:'heal',by:a.by,w:t,h,hp:[...hp]})}else{const t=a.tg,d=Math.max(1,Math.round(s[t].hp*0.1));hp[t]-=d;ev.push({t:'assist',k:'hit',by:a.by,w:t,d,hp:[...hp]})}}
+  if(hp[0]<=0||hp[1]<=0)break;const o=1-cur,me=s[cur],SS=st[cur],T=st[o];
   if(SS.po>0){const d=Math.max(1,Math.round(me.hp*0.06));hp[cur]-=d;SS.po--;ev.push({w:cur,t:'poison',d,hp:[...hp]});if(hp[cur]<=0)break}
   if(SS.stun){SS.stun=0;ev.push({w:cur,t:'stun',hp:[...hp]});cur=o;n++;continue}
   let sk=r()<0.3;const base=me.atk*SS.bf;const e={w:cur,t:sk?'skill':'atk',sk:sk?me.sk:null,d:0,h:0,quick0:SS.q};
@@ -1523,22 +1529,28 @@ const battles=[],fought=new Set(),timers=[],floats=[],fx=[],chats=[],chatted=new
 const DEFLINE=['안녕!','반가워~','오늘 날씨 좋다','배고프다…','같이 모험 갈래?','어디 가는 길이야?','과제 다 했어?','졸려…'];
 const lineOf=e=>e.c.line||DEFLINE[hash32(e.id)%DEFLINE.length];
 function say(e,on){if(!e.bubEl)return;if(on){e.bubEl.textContent=lineOf(e);e.bubEl.classList.add('on')}else e.bubEl.classList.remove('on')}
-function startChat(id,a,b,shy){chatted.add(id);const mx=(a.x+b.x)/2,mz=(a.z+b.z)/2;let dx=b.x-a.x,dz=b.z-a.z;const d=Math.hypot(dx,dz)||1;dx/=d;dz/=d;
+function startChat(id,a,b,shy){chatted.add(id);if(shy==='rival'){startRival(a,b);return}const mx=(a.x+b.x)/2,mz=(a.z+b.z)/2;let dx=b.x-a.x,dz=b.z-a.z;const d=Math.hypot(dx,dz)||1;dx/=d;dz/=d;
  a.spot=[mx-dx*0.6,mz-dz*0.6];b.spot=[mx+dx*0.6,mz+dz*0.6];for(const[e,f]of[[a,b],[b,a]]){e.state='chat';e.foe=f;e.shy=!!shy}chats.push({a,b,t:0,st:0,shy:!!shy,ht:0,anc:{x:mx,z:mz,r:{top:1.0}}});
  if(shy){a.spot=[mx-dx*0.5,mz-dz*0.5];b.spot=[mx+dx*0.5,mz+dz*0.5];later(0.6,()=>{floatText(a,'///','#ff8ab0');floatText(b,'///','#ff8ab0')})}}
-function endChat(c){for(const e of[c.a,c.b]){say(e,false);e.shy=false;if(e.state==='chat'){e.state='free';e.foe=null;e.cool=Date.now()/1000+10}}chats.splice(chats.indexOf(c),1)}
+function startRival(a,b){const mx=(a.x+b.x)/2,mz=(a.z+b.z)/2;let dx=b.x-a.x,dz=b.z-a.z;const d=Math.hypot(dx,dz)||1;dx/=d;dz/=d;a.spot=[mx-dx*0.45,mz-dz*0.45];b.spot=[mx+dx*0.45,mz+dz*0.45];
+ for(const[e,f]of[[a,b],[b,a]]){e.state='chat';e.foe=f;e.shy=false;e.rival=1}chats.push({a,b,t:0,st:0,rival:1,lt:0.6,anc:{x:mx,z:mz,r:{top:1.0}}});floatText(a,'!','#ffe169',true);floatText(b,'?!','#ffe169',true)}
+const RIVL={emperor:['감히 짐 앞에서!','무엄하도다!','이 땅은 짐의 것이다!','근위대여!!'],demon:['인간 왕 따위가!','흥, 내 영토다!','지옥불 맛 좀 볼래?','크하하!']},RIVS=['퍽!','에잇!','퍽퍽!','이익!'];
+function endChat(c){if(c.rival){for(const e of[c.a,c.b]){e.rival=0;if(e.state==='chat'){e.state='free';e.foe=null;e.cool=Date.now()/1000+12;floatText(e,'흥!','#e0dcd4')}}chats.splice(chats.indexOf(c),1);return}for(const e of[c.a,c.b]){say(e,false);e.shy=false;if(e.state==='chat'){e.state='free';e.foe=null;e.cool=Date.now()/1000+10}}chats.splice(chats.indexOf(c),1)}
 function stepChat(c,dt){if(!ents.has(c.a.id)||!ents.has(c.b.id)){endChat(c);return}c.t+=dt;
+ if(c.rival){c.lt-=dt;if(c.lt<=0){c.lt=0.75;const e=Math.random()<0.5?c.a:c.b;const L=RIVL[e.c.cls]||RIVS;floatText(e,Math.random()<0.35?RIVS[Math.floor(Math.random()*RIVS.length)]:L[Math.floor(Math.random()*L.length)],'#ffcf9a');if(Math.random()<0.5)burst((c.a.x+c.b.x)/2,(c.a.z+c.b.z)/2,'#b8a88a')}if(c.t>7)endChat(c);return}
  if(c.shy){c.anc.x=(c.a.x+c.b.x)/2;c.anc.z=(c.a.z+c.b.z)/2;c.ht-=dt;if(c.t>0.8&&c.ht<=0){c.ht=0.32;heartFloat(c.anc)}if(c.t>8)endChat(c);return}
  if(c.st===0&&c.t>0.8){say(c.a,true);c.st=1}else if(c.st===1&&c.t>3.8){say(c.a,false);say(c.b,true);c.st=2}else if(c.st===2&&c.t>6.8){endChat(c)}}
 const later=(t,fn)=>timers.push({t,fn});
 function floatText(e,txt,col,big){const f=el('div','fl',txt);f.style.color=col;if(big)f.style.fontSize='28px';tagsEl.append(f);floats.push({el:f,e,t:0,life:1.3,dx:(Math.random()-0.5)*30})}
 function burst(x,z,col){const m=new THREE.Mesh(new THREE.TorusGeometry(0.3,0.06,4,10),new THREE.MeshBasicMaterial({color:col,transparent:true}));m.rotation.x=Math.PI/2;m.position.set(x,0.8,z);scene.add(m);fx.push({m,t:0})}
 function startBattle(id,ea,eb,kind){
- if(ea.c.id>eb.c.id)[ea,eb]=[eb,ea];fought.add(id);const res=simBattle(id,ea.c,eb.c);
+ if(ea.c.id>eb.c.id)[ea,eb]=[eb,ea];fought.add(id);
  const mx=(ea.x+eb.x)/2,mz=(ea.z+eb.z)/2;let dx=eb.x-ea.x,dz=eb.z-ea.z;const d=Math.hypot(dx,dz)||1;dx/=d;dz/=d;
+ const W0=[...ents.values()].filter(e=>e.state==='free'&&e.r&&e!==ea&&e!==eb&&Math.hypot(e.x-mx,e.z-mz)<7).sort((p,q)=>Math.hypot(p.x-mx,p.z-mz)-Math.hypot(q.x-mx,q.z-mz)).slice(0,10);
+ const res=simBattle(id,ea.c,eb.c,assistsFor(id,[ea.c,eb.c],W0));
  ea.spot=[mx-dx*0.85,mz-dz*0.85];eb.spot=[mx+dx*0.85,mz+dz*0.85];
  for(const[e,f]of[[ea,eb],[eb,ea]]){e.state='battle';e.foe=f;e.tag.classList.add('fight');e.hpEl.style.width='100%'}
- const W=[...ents.values()].filter(e=>e.state==='free'&&e.r&&e!==ea&&e!==eb&&Math.hypot(e.x-mx,e.z-mz)<7).sort((p,q)=>Math.hypot(p.x-mx,p.z-mz)-Math.hypot(q.x-mx,q.z-mz)).slice(0,10);
+ const W=W0;
  const base=Math.atan2(dx,dz)+Math.PI/2;W.forEach((e,i)=>{const a=base+Math.PI/2+(i+0.5)/W.length*Math.PI*2*(W.length>1?1:0)+(W.length===1?Math.PI/2:0);const rr=2.3+(i%2)*0.35;let sx=mx+Math.sin(a)*rr,sz=mz+Math.cos(a)*rr;const dd=Math.hypot(sx,sz);if(dd<4.4){sx*=4.4/dd;sz*=4.4/dd}
   e.state='watch';e.spot=[sx,sz];e.watchC=[mx,mz]});
  const af=affOf(ea.c,eb.c);if(af)floatText(af>0?ea:eb,'상성 유리!','#ffd24a');
@@ -1547,6 +1559,7 @@ function stepBattle(b,dt){b.t-=dt;if(b.t>0)return;const[A,B]=b.ents;
  if(!S.chars.has(A.id)||!S.chars.has(B.id)){endBattle(b);return}
  if(b.i<b.res.ev.length){const ev=b.res.ev[b.i++];const at=b.ents[ev.w],tg=b.ents[1-ev.w];const C=CLS[at.c.cls];const acc=C.o[at.c.outfit][1][2];
   const setHp=()=>{for(let k=0;k<2;k++)b.ents[k].hpEl.style.width=Math.max(0,ev.hp[k]/b.res.max[k]*100)+'%'};
+  if(ev.t==='assist'){const hl=ents.get(ev.by),tg2=b.ents[ev.w];if(ev.k==='heal'){if(hl){hl.atkT=0.45;floatText(hl,'치유!','#7affa8',true);crossFx(tg2)}later(0.25,()=>{floatText(tg2,'+'+ev.h,'#5cff8a',true);setHp()})}else{if(hl){hl.atkT=0.45;floatText(hl,'피의 계약!','#ff3a5a',true);shootProj(hl,tg2,'dagger',()=>{tg2.hitT=0.3;floatText(tg2,'-'+ev.d,'#ff3a5a',true);setHp()})}else{tg2.hitT=0.3;setHp()}}b.t=1.0;return}
   if(ev.t==='counter'){at.atkT=0.45;floatText(at,'회피 반격!','#7ad8ff');shootProj(at,tg,ev.rng==='archer'?'arrow':'dagger',()=>{tg.hitT=0.3;floatText(tg,'-'+ev.d,'#ff5a6a');setHp()});b.t=0.9;return}
   if(ev.t==='poison'){floatText(at,'독 -'+ev.d,'#b06bff');at.hitT=0.3;setHp()}
   else if(ev.t==='stun'){floatText(at,'멈춤!','#ffd84a')}
@@ -1583,6 +1596,7 @@ function detect(T){const bucket=Math.floor(T/240),cb=Math.floor(T/90);const free
   if(a.state!=='free'||b.state!=='free')continue;
   const royal=(a.c.cls==='prince'&&b.c.cls==='princess')||(a.c.cls==='princess'&&b.c.cls==='prince');
   if(royal){if(!chatted.has(cid))startChat(cid,a,b,true);continue}
+  const rival=(a.c.cls==='emperor'&&b.c.cls==='demon')||(a.c.cls==='demon'&&b.c.cls==='emperor');if(rival){if(!chatted.has(cid))startChat(cid,a,b,'rival');continue}
   if(!fought.has(bid)&&hrand(hash32(bid),7)<0.4){startBattle(bid,a,b,'plaza');continue}
   if(!chatted.has(cid))startChat(cid,a,b)}}
 let duel=null;const stones=[];
@@ -1626,13 +1640,14 @@ function crossFx(e){const g=new THREE.Group();const m=new THREE.MeshBasicMateria
  const top=(e.r&&e.r.top)||1.8;g.position.set(e.x+Math.sin(e.face)*0.55,top+0.25,e.z+Math.cos(e.face)*0.55);scene.add(g);PRAYFX.push({g,m,t:0,y0:g.position.y})}
 function wedWorld(lx,lz){const ry=Math.atan2(-WED.x,-WED.z),c=Math.cos(ry),s2=Math.sin(ry);return[WED.x+lx*c+lz*s2,WED.z-lx*s2+lz*c]}
 function loveDetect(free,T,tk){loveLoad();
- for(const e of ents.values()){if(e.state==='pray'&&T>e.prayUntil){e.state='free';e.faceFix=null;e.prayCool=T+35+hrand(tk,e.seed)*30;e.cool=T+2}
+ for(const e of ents.values()){if(e.state==='pray'&&T>e.prayUntil){e.state='free';e.faceFix=null;e.bowPope=0;e.prayCool=T+35+hrand(tk,e.seed)*30;e.cool=T+2}
   if(e.state==='flowerwalk'){const o=e.ftgt;if(!o||!ents.has(o.id)||o.state!=='waitflower'){e.state='free';e.cool=T+3;if(o&&o.state==='waitflower')o.state='free';continue}
    if(Math.hypot(e.x-o.x,e.z-o.z)<1.0){e.state='giveflower';e.spot=[e.x,e.z];e.faceFix=Math.atan2(o.x-e.x,o.z-e.z);floatText(e,'💐','#ff8ab8',true);bubble(e,'이거 받아줘!');const E=e,O=o;
     later(1.3,()=>{if(!ents.has(O.id)||!ents.has(E.id))return;bubble(E,'');bubble(O,'고마워 ♥');const k=pkey(E.id,O.id);LOVEA[k]=(LOVEA[k]||0)+1;loveSave();const v=LOVEA[k];floatText(O,`💕 호감도 ${Math.min(v,LOVE_MAX)}/${LOVE_MAX}`,'#ff8ac8',v>=LOVE_MAX);
      later(1.6,()=>{if(ents.has(O.id))bubble(O,'');for(const q of[E,O])if(ents.has(q.id)&&(q.state==='giveflower'||q.state==='waitflower')){q.state='free';q.faceFix=null;q.cool=Date.now()/1000+3}
       if(v>=LOVE_MAX&&!WEDDING&&!spouse(E.id)&&!spouse(O.id)&&ents.has(E.id)&&ents.has(O.id)&&E.state==='free'&&O.state==='free')startWedding(E,O)})})}}}
  for(const e of free){if(e.state!=='free')continue;const cl=e.c.cls;
+  if((cl==='paladin'||cl==='cleric')&&!(cl==='cleric'&&e.c.outfit===2)&&(e.popeCool||0)<T){const pp=[...ents.values()].find(q=>q!==e&&q.c.cls==='cleric'&&q.c.outfit===2&&q.r&&Math.hypot(q.x-e.x,q.z-e.z)<3.5);if(pp){e.popeCool=T+90;e.state='pray';e.bowPope=1;e.spot=[e.x,e.z];e.faceFix=Math.atan2(pp.x-e.x,pp.z-e.z);e.prayUntil=T+3.2;e.prayCool=Math.max(e.prayCool||0,T+20);floatText(e,'헉! 교황 성하!','#ffe169',true);const E=e,P=pp;later(1.1,()=>{if(E.state==='pray')bubble(E,'축복을 내려주소서…')});later(1.8,()=>{if(ents.has(P.id)){floatText(P,'축복을… ✝','#fff2a0');crossFx(P)}});later(3.2,()=>{if(ents.has(E.id))bubble(E,'')});continue}}
   if((cl==='paladin'||cl==='cleric')&&(e.prayCool||0)<T&&hrand(tk,e.seed^0x9a7e)<0.012){e.state='pray';e.spot=[e.x,e.z];e.faceFix=e.face;e.prayUntil=T+4.5;const E=e;crossFx(E);later(1.4,()=>{if(E.state==='pray')crossFx(E)});later(2.8,()=>{if(E.state==='pray')crossFx(E)});continue}
   if((e.flowerCool||0)<T&&hrand(tk,e.seed^0xf10e)<0.0007){const cands=free.filter(o=>o!==e&&o.state==='free');if(!cands.length)continue;const sp=spouse(e.id);
    let o=null;if(sp)o=cands.find(q=>q.id===sp)||null;if(!o){const sc=cands.map(q=>[q,(LOVEA[pkey(e.id,q.id)]||0)+(spouse(q.id)?-99:0)+hrand(tk,q.seed^e.seed)*1.5]).sort((a,b)=>b[1]-a[1]);o=sc[0][1]>-50?sc[0][0]:null}
